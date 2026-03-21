@@ -1,15 +1,13 @@
 import Link from "next/link";
+import { getCompanyModules } from "@/lib/config/company-config";
 
-const modules = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/productos", label: "Productos" },
-  { href: "/usuarios", label: "Usuarios" },
-  { href: "/empresas", label: "Empresas" },
-];
-
-export default function SaasLayout({
+export default async function SaasLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // companyId: null = modo sin empresa (muestra todos los módulos por defecto)
+  // En el futuro: obtener companyId del contexto de sesión/cookie
+  const { modules } = await getCompanyModules(null);
+
   return (
     <div className="min-h-screen bg-zinc-100">
       <div className="mx-auto flex max-w-7xl">
@@ -19,11 +17,11 @@ export default function SaasLayout({
           <nav className="mt-6 space-y-2">
             {modules.map((module) => (
               <Link
-                key={module.href}
-                href={module.href}
+                key={module.id}
+                href={module.path}
                 className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
               >
-                {module.label}
+                {module.name}
               </Link>
             ))}
           </nav>

@@ -1,14 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
+/**
+ * Cliente Supabase - reexporta desde server para compatibilidad.
+ * @deprecated Usar createServerSupabaseClient desde lib/supabase/server
+ */
+import { createServerSupabaseClient } from "./supabase/server";
 
 export function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Faltan variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    );
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createServerSupabaseClient();
 }
