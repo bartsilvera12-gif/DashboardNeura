@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DashboardNeura
 
-## Getting Started
+Base inicial de un sistema SaaS para gestión empresarial y conexión con tiendas
+de e-commerce.
 
-First, run the development server:
+## Stack tecnológico
+
+- Next.js (App Router)
+- React
+- TypeScript
+- TailwindCSS
+- Supabase (PostgreSQL + Auth)
+- Deploy: Vercel + GitHub
+
+## Módulos iniciales
+
+- `Dashboard`
+- `Stock`
+- `Usuarios`
+- `Empresas`
+
+## Configuración local
+
+1. Copia variables de entorno:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Reemplaza valores en `.env.local` con tu proyecto de Supabase.
+
+3. Ejecuta en desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Abre `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estructura de rutas
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` inicio del proyecto
+- `/dashboard` módulo Dashboard
+- `/stock` módulo Stock
+- `/usuarios` módulo Usuarios
+- `/empresas` módulo Empresas
 
-## Learn More
+## Siguientes pasos recomendados
 
-To learn more about Next.js, take a look at the following resources:
+- Conectar Auth de Supabase (login/logout y sesión).
+- Crear tablas base: `companies`, `profiles`, `roles`, `company_modules`.
+- Implementar control de permisos por empresa y por módulo.
+- Conectar integraciones de e-commerce (shop sync, stock sync, pedidos).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy en Vercel con GitHub
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Crear repositorio en GitHub y subir el proyecto.
+2. En Vercel, importar el repo.
+3. Configurar variables de entorno de Supabase en Vercel.
+4. Desplegar.
