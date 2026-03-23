@@ -38,36 +38,28 @@ export async function createApiKeyAction(formData: FormData): Promise<
   return { ok: true, key: result.key, prefix: result.prefix, companyName };
 }
 
-export async function toggleApiKeyAction(id: string, isActive: boolean): Promise<{
-  ok: boolean;
-  error?: string;
-}> {
+export async function toggleApiKeyAction(id: string, isActive: boolean): Promise<void> {
   const session = await getSession();
   if (!session.profile?.is_super_admin) {
-    return { ok: false, error: "Sin permisos" };
+    throw new Error("Sin permisos");
   }
 
   const result = await toggleApiKey(id, isActive);
   if (!result.ok) {
-    return { ok: false, error: result.error };
+    throw new Error(result.error ?? "Error al cambiar estado");
   }
   revalidatePath("/api-integraciones");
-  return { ok: true };
 }
 
-export async function deleteApiKeyAction(id: string): Promise<{
-  ok: boolean;
-  error?: string;
-}> {
+export async function deleteApiKeyAction(id: string): Promise<void> {
   const session = await getSession();
   if (!session.profile?.is_super_admin) {
-    return { ok: false, error: "Sin permisos" };
+    throw new Error("Sin permisos");
   }
 
   const result = await deleteApiKey(id);
   if (!result.ok) {
-    return { ok: false, error: result.error };
+    throw new Error(result.error ?? "Error al revocar");
   }
   revalidatePath("/api-integraciones");
-  return { ok: true };
 }
