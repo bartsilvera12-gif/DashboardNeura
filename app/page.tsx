@@ -1,6 +1,19 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+import Link from "next/link";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+export default async function Home() {
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/dashboard");
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
       <div className="w-full max-w-3xl rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
@@ -12,22 +25,15 @@ export default function Home() {
         </h1>
         <p className="mt-3 text-zinc-600">
           Base inicial con módulos de Dashboard, Stock, Usuarios y Empresas.
-          El siguiente paso es conectar Supabase Auth y definir permisos por
-          empresa.
+          Inicia sesión para acceder al panel.
         </p>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8">
           <Link
-            href="/dashboard"
-            className="rounded-lg border border-zinc-200 px-4 py-3 font-medium text-zinc-800 hover:bg-zinc-50"
+            href="/login"
+            className="inline-flex rounded-lg bg-zinc-900 px-4 py-3 font-medium text-white hover:bg-zinc-800"
           >
-            Ir al Dashboard
-          </Link>
-          <Link
-            href="/empresas"
-            className="rounded-lg border border-zinc-200 px-4 py-3 font-medium text-zinc-800 hover:bg-zinc-50"
-          >
-            Ver Empresas
+            Iniciar sesión
           </Link>
         </div>
       </div>

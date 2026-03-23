@@ -1,11 +1,12 @@
 /**
- * Cliente Supabase para uso en Server Components y Server Actions.
- * Usa las variables de entorno del servidor.
+ * Cliente Supabase para Server Components, Server Actions y Route Handlers.
+ * Usa cookies para leer/escribir la sesión del usuario.
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-export function createServerSupabaseClient() {
+export async function createServerSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -15,5 +16,22 @@ export function createServerSupabaseClient() {
     );
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  const cookieStore = await cookies();
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch {
+          // Ignorar si se llama desde Server Component (no puede escribir cookies)
+        }
+      },
+    },
+  });
 }

@@ -7,10 +7,16 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type RoleScope = "global" | "company";
 
+export type CompanyType = "ecommerce" | "inmobiliaria" | "servicios" | "personalizado";
+
 export interface Company {
   id: string;
   name: string;
   slug: string;
+  company_type: CompanyType;
+  description: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -23,7 +23,7 @@ export interface CompanyModuleSectionConfig {
  */
 export async function getAllModules(): Promise<Module[]> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
     return data ?? [];
   } catch {
@@ -32,11 +32,48 @@ export async function getAllModules(): Promise<Module[]> {
 }
 
 /**
+ * Obtiene la configuración actual de módulos para una empresa.
+ * Retorna mapas module_id -> { is_enabled, sort_order } y module_section_id -> { is_enabled, sort_order }
+ */
+export async function getCompanyModulesConfig(companyId: string): Promise<{
+  modules: Map<string, { is_enabled: boolean; sort_order: number }>;
+  sections: Map<string, { is_enabled: boolean; sort_order: number }>;
+}> {
+  try {
+    const supabase = await getSupabaseClient();
+    const [modulesRes, sectionsRes] = await Promise.all([
+      supabase
+        .from("company_modules")
+        .select("module_id, is_enabled, sort_order")
+        .eq("company_id", companyId),
+      supabase
+        .from("company_module_sections")
+        .select("module_section_id, is_enabled, sort_order")
+        .eq("company_id", companyId),
+    ]);
+
+    const modules = new Map<string, { is_enabled: boolean; sort_order: number }>();
+    for (const cm of modulesRes.data ?? []) {
+      modules.set(cm.module_id, { is_enabled: cm.is_enabled, sort_order: cm.sort_order });
+    }
+
+    const sections = new Map<string, { is_enabled: boolean; sort_order: number }>();
+    for (const cs of sectionsRes.data ?? []) {
+      sections.set(cs.module_section_id, { is_enabled: cs.is_enabled, sort_order: cs.sort_order });
+    }
+
+    return { modules, sections };
+  } catch {
+    return { modules: new Map(), sections: new Map() };
+  }
+}
+
+/**
  * Obtiene las secciones de un módulo.
  */
 export async function getModuleSections(moduleId: string): Promise<ModuleSection[]> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data } = await supabase
       .from("module_sections")
       .select("*")
@@ -57,7 +94,7 @@ export async function setCompanyModules(
   configs: CompanyModuleConfig[]
 ): Promise<boolean> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     await supabase.from("company_modules").delete().eq("company_id", companyId);
 
@@ -89,7 +126,7 @@ export async function setCompanyModuleSections(
   configs: CompanyModuleSectionConfig[]
 ): Promise<boolean> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     await supabase.from("company_module_sections").delete().eq("company_id", companyId);
 

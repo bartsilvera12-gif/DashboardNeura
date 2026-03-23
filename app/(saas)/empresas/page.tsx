@@ -11,10 +11,15 @@ export default async function EmpresasPage() {
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Empresas</h1>
           <p className="mt-2 text-zinc-600">
-            Crea empresas y define qué módulos, secciones, widgets y campos
-            pueden visualizar. Panel Super Admin.
+            Centro de alta y configuración de clientes. Panel Super Admin.
           </p>
         </div>
+        <Link
+          href="/empresas/nuevo"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          Alta nuevo cliente
+        </Link>
       </div>
 
       <div className="mt-8">

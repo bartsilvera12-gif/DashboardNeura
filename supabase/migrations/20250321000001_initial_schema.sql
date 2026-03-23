@@ -1,9 +1,6 @@
 -- DashboardNeura: Esquema base multiempresa
 -- Migración inicial - Tablas core
 
--- Extensión para UUIDs
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Enum para scope de roles
 CREATE TYPE role_scope AS ENUM ('global', 'company');
 
@@ -13,7 +10,7 @@ CREATE TYPE role_scope AS ENUM ('global', 'company');
 
 -- Empresas
 CREATE TABLE companies (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT NOT NULL UNIQUE,
   is_active BOOLEAN NOT NULL DEFAULT true,
@@ -38,7 +35,7 @@ CREATE INDEX idx_profiles_is_super_admin ON profiles(is_super_admin) WHERE is_su
 
 -- Roles del sistema
 CREATE TABLE roles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   scope role_scope NOT NULL DEFAULT 'company',
@@ -49,7 +46,7 @@ CREATE INDEX idx_roles_code ON roles(code);
 
 -- Usuario-Empresa-Rol
 CREATE TABLE user_company_roles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
@@ -65,7 +62,7 @@ CREATE INDEX idx_user_company_roles_company ON user_company_roles(company_id);
 -- ============================================
 
 CREATE TABLE modules (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   path TEXT NOT NULL,
@@ -77,7 +74,7 @@ CREATE TABLE modules (
 CREATE INDEX idx_modules_code ON modules(code);
 
 CREATE TABLE module_sections (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   module_id UUID NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
   code TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -90,7 +87,7 @@ CREATE INDEX idx_module_sections_module ON module_sections(module_id);
 
 -- Configuración por empresa: módulos
 CREATE TABLE company_modules (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   module_id UUID NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
   is_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -103,7 +100,7 @@ CREATE INDEX idx_company_modules_company ON company_modules(company_id);
 
 -- Configuración por empresa: secciones
 CREATE TABLE company_module_sections (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   module_section_id UUID NOT NULL REFERENCES module_sections(id) ON DELETE CASCADE,
   is_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -119,7 +116,7 @@ CREATE INDEX idx_company_module_sections_company ON company_module_sections(comp
 -- ============================================
 
 CREATE TABLE dashboard_widgets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   description TEXT,
@@ -129,7 +126,7 @@ CREATE TABLE dashboard_widgets (
 );
 
 CREATE TABLE company_dashboard_widgets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   widget_id UUID NOT NULL REFERENCES dashboard_widgets(id) ON DELETE CASCADE,
   is_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -146,7 +143,7 @@ CREATE INDEX idx_company_dashboard_widgets_company ON company_dashboard_widgets(
 -- ============================================
 
 CREATE TABLE form_definitions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   module_id UUID NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
   entity_code TEXT NOT NULL,
   form_code TEXT NOT NULL,
@@ -158,7 +155,7 @@ CREATE TABLE form_definitions (
 CREATE INDEX idx_form_definitions_module ON form_definitions(module_id);
 
 CREATE TABLE form_fields (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   form_definition_id UUID NOT NULL REFERENCES form_definitions(id) ON DELETE CASCADE,
   code TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -175,7 +172,7 @@ CREATE TABLE form_fields (
 CREATE INDEX idx_form_fields_form_definition ON form_fields(form_definition_id);
 
 CREATE TABLE company_form_fields (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
   form_field_id UUID NOT NULL REFERENCES form_fields(id) ON DELETE CASCADE,
   is_visible BOOLEAN,
@@ -193,7 +190,7 @@ CREATE INDEX idx_company_form_fields_company ON company_form_fields(company_id);
 -- ============================================
 
 CREATE TABLE company_branding (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id UUID NOT NULL UNIQUE REFERENCES companies(id) ON DELETE CASCADE,
   display_name TEXT,
   logo_url TEXT,
@@ -207,7 +204,7 @@ CREATE TABLE company_branding (
 -- ============================================
 
 CREATE TABLE permissions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   resource TEXT NOT NULL,
@@ -216,7 +213,7 @@ CREATE TABLE permissions (
 );
 
 CREATE TABLE role_permissions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
   permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -1,4 +1,46 @@
-export default function ProductosPage() {
+import { Suspense } from "react";
+import { getSession } from "@/lib/auth/session";
+import { getProductsForCompany } from "@/lib/config/products-service";
+import { getCompanyProductColumnConfig } from "@/lib/config/product-column-config";
+import { getCompanyCategories } from "@/lib/config/company-categories-service";
+import { getStockMovementsByCompany } from "@/lib/config/stock-movements-service";
+import { ProductosTabs } from "./_components/productos-tabs";
+
+export const dynamic = "force-dynamic";
+
+export default async function ProductosPage() {
+  const session = await getSession();
+  const companyId =
+    session.activeCompanyId ??
+    (session.companies.length === 1 ? session.companies[0].id : null);
+
+  if (!companyId) {
+    return (
+      <main>
+        <h1 className="text-2xl font-semibold text-zinc-900">Productos</h1>
+        <p className="mt-2 text-zinc-600">
+          Selecciona una empresa para gestionar productos.
+        </p>
+      </main>
+    );
+  }
+
+  const [products, catalogoColumns, stockColumns, categories, movements] =
+    await Promise.all([
+      getProductsForCompany(companyId),
+      getCompanyProductColumnConfig(companyId, "catalogo"),
+      getCompanyProductColumnConfig(companyId, "stock"),
+      getCompanyCategories(companyId),
+      getStockMovementsByCompany(companyId, 200),
+    ]);
+
+  const lastMovementByProduct = new Map<string, (typeof movements)[0]>();
+  for (const m of movements) {
+    if (!lastMovementByProduct.has(m.product_id)) {
+      lastMovementByProduct.set(m.product_id, m);
+    }
+  }
+
   return (
     <main>
       <h1 className="text-2xl font-semibold text-zinc-900">Productos</h1>
@@ -7,24 +49,17 @@ export default function ProductosPage() {
         productos e inventario en un solo lugar.
       </p>
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-medium text-zinc-900">
-            Catálogo de productos
-          </h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Gestiona el listado, precios y datos de tus productos.
-          </p>
-        </section>
-
-        <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-medium text-zinc-900">
-            Stock e inventario
-          </h2>
-          <p className="mt-2 text-sm text-zinc-500">
-            Control de existencias y niveles de inventario por tienda.
-          </p>
-        </section>
+      <div className="mt-8">
+        <Suspense fallback={<div className=" rounded-lg border border-zinc-200 bg-zinc-50 p-8 text-center text-zinc-500">Cargando…</div>}>
+          <ProductosTabs
+            companyId={companyId}
+            products={products}
+            catalogoColumns={catalogoColumns}
+            stockColumns={stockColumns}
+            categories={categories}
+            lastMovementByProduct={Object.fromEntries(lastMovementByProduct)}
+          />
+        </Suspense>
       </div>
     </main>
   );

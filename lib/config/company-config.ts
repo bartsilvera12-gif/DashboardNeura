@@ -35,7 +35,7 @@ export interface CompanyFormFieldsConfig {
  */
 export async function getCompanyModules(companyId: string | null): Promise<CompanyModulesConfig> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const { data: modules } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
 
@@ -112,7 +112,7 @@ export async function getCompanyModules(companyId: string | null): Promise<Compa
  */
 export async function getCompanyDashboardWidgets(companyId: string | null): Promise<CompanyDashboardConfig> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const { data: widgets } = await supabase
       .from("dashboard_widgets")
@@ -173,7 +173,7 @@ export async function getCompanyFormFields(
   formCode: string
 ): Promise<CompanyFormFieldsConfig> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
 
     const { data: moduleRow } = await supabase.from("modules").select("id").eq("code", moduleCode).single();
     if (!moduleRow) return { fields: [] };
@@ -241,7 +241,7 @@ export async function getCompanyFormFields(
 export async function getCompanyBranding(companyId: string | null): Promise<CompanyBranding | null> {
   if (!companyId) return null;
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data } = await supabase.from("company_branding").select("*").eq("company_id", companyId).single();
     return data;
   } catch {
@@ -254,7 +254,7 @@ export async function getCompanyBranding(companyId: string | null): Promise<Comp
  */
 export async function getCompanies(): Promise<Company[]> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data } = await supabase.from("companies").select("*").order("name");
     return data ?? [];
   } catch {
@@ -267,6 +267,7 @@ function getDefaultModulesConfig(): CompanyModulesConfig {
     modules: [
       { id: "1", code: "dashboard", name: "Dashboard", path: "/dashboard", sort_order: 10, is_active: true, created_at: "", is_enabled: true },
       { id: "2", code: "productos", name: "Productos", path: "/productos", sort_order: 20, is_active: true, created_at: "", is_enabled: true },
+      { id: "5", code: "pedidos", name: "Gestión de pedidos", path: "/pedidos", sort_order: 25, is_active: true, created_at: "", is_enabled: true },
       { id: "3", code: "usuarios", name: "Usuarios", path: "/usuarios", sort_order: 30, is_active: true, created_at: "", is_enabled: true },
       { id: "4", code: "empresas", name: "Empresas", path: "/empresas", sort_order: 40, is_active: true, created_at: "", is_enabled: true },
     ],

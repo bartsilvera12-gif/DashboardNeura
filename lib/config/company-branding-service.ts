@@ -19,7 +19,7 @@ export async function upsertCompanyBranding(
   input: CompanyBrandingInput
 ): Promise<CompanyBranding | null> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("company_branding")
       .upsert(
