@@ -1,6 +1,10 @@
 import { dbFrom } from "@/lib/db/schema";
 import { NextRequest } from "next/server";
-import { getCompanyFromApiKey, jsonResponse } from "@/lib/api/public-api";
+import {
+  getCompanyFromApiKey,
+  jsonResponse,
+  optionsResponse,
+} from "@/lib/api/public-api";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { logApiRequest } from "@/lib/config/api-logs-service";
 
@@ -8,6 +12,10 @@ import { logApiRequest } from "@/lib/config/api-logs-service";
  * GET /api/public/orders/:id/payment-status?ref=PAY-xxx
  * Consulta estado de un pago.
  */
+export async function OPTIONS() {
+  return optionsResponse();
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

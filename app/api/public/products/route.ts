@@ -1,7 +1,15 @@
 import { NextRequest } from "next/server";
-import { getCompanyFromApiKey, jsonResponse } from "@/lib/api/public-api";
+import {
+  getCompanyFromApiKey,
+  jsonResponse,
+  optionsResponse,
+} from "@/lib/api/public-api";
 import { getPublicProducts } from "@/lib/config/public-api-products-service";
 import { logApiRequest } from "@/lib/config/api-logs-service";
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 export async function GET(request: NextRequest) {
   const endpoint = "/api/public/products";
