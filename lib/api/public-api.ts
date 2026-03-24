@@ -7,12 +7,11 @@ import { NextRequest } from "next/server";
 import { validateApiKey } from "@/lib/config/api-keys-service";
 
 export const API_KEY_HEADER = "x-api-key";
-const CORS_ALLOWED_ORIGIN = process.env.PUBLIC_API_ALLOWED_ORIGIN ?? "*";
 const CORS_ALLOWED_HEADERS = "Content-Type, Authorization, x-api-key";
 
 function buildCorsHeaders() {
   return {
-    "Access-Control-Allow-Origin": CORS_ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": CORS_ALLOWED_HEADERS,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     Vary: "Origin",

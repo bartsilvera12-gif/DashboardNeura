@@ -3,6 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getPublicSupabaseEnv } from "@/lib/env/supabase";
 
 export async function middleware(request: NextRequest) {
+  // Evita ejecutar auth middleware sobre API publica y preflight CORS.
+  if (
+    request.nextUrl.pathname.startsWith("/api/public") ||
+    request.method === "OPTIONS"
+  ) {
+    return NextResponse.next({
+      request: { headers: request.headers },
+    });
+  }
+
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
