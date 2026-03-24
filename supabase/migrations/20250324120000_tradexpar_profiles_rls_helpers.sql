@@ -1,18 +1,22 @@
--- Perfiles y helpers RLS: fuente de verdad en tradexpar.profiles (sin depender de public.profiles).
--- Requisitos: schema tradexpar y tablas de negocio (p. ej. user_company_roles) ya existentes.
--- Tras aplicar: revisar Supabase → API → Exposed schemas incluye "tradexpar".
+-- Perfiles y helpers RLS: fuente de verdad en tradexpar.profiles.
+-- Si el remoto solo tenía tablas en public, se clonan companies/roles/user_company_roles a tradexpar.
+-- Tras aplicar: Supabase → API → Exposed schemas debe incluir "tradexpar".
 
 CREATE SCHEMA IF NOT EXISTS tradexpar;
 
--- Requisito: el ERP ya tiene tablas en tradexpar (p. ej. user_company_roles).
+-- ---------------------------------------------------------------------------
+-- 0. Clonar tablas de negocio desde public → tradexpar si faltan (FKs coherentes)
+-- ---------------------------------------------------------------------------
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'tradexpar' AND table_name = 'user_company_roles'
-  ) THEN
-    RAISE EXCEPTION
-      'tradexpar.user_company_roles no existe. Crea o replica las tablas de negocio en tradexpar antes de esta migración.';
+  IF to_regclass('public.companies') IS NOT NULL AND to_regclass('tradexpar.companies') IS NULL THEN
+    EXECUTE 'CREATE TABLE tradexpar.companies (LIKE public.companies INCLUDING ALL)';
+    EXECUTE 'INSERT INTO tradexpar.companies SELECT * FROM public.companies ON CONFLICT (id) DO NOTHING';
+  END IF;
+
+  IF to_regclass('public.roles') IS NOT NULL AND to_regclass('tradexpar.roles') IS NULL THEN
+    EXECUTE 'CREATE TABLE tradexpar.roles (LIKE public.roles INCLUDING ALL)';
+    EXECUTE 'INSERT INTO tradexpar.roles SELECT * FROM public.roles ON CONFLICT (id) DO NOTHING';
   END IF;
 END $$;
 
@@ -32,7 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_tradexpar_profiles_super
   ON tradexpar.profiles(is_super_admin)
   WHERE is_super_admin = true;
 
--- Copia única desde public.profiles si aún existe (migración de datos)
+-- Copia desde public.profiles si existe
 DO $$
 BEGIN
   IF EXISTS (
@@ -50,8 +54,57 @@ BEGIN
   END IF;
 END $$;
 
+-- user_company_roles: clonar desde public si falta en tradexpar
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  IF to_regclass('public.user_company_roles') IS NOT NULL
+     AND to_regclass('tradexpar.user_company_roles') IS NULL THEN
+    EXECUTE 'CREATE TABLE tradexpar.user_company_roles (LIKE public.user_company_roles INCLUDING ALL)';
+
+    FOR r IN
+      SELECT c.conname
+      FROM pg_constraint c
+      JOIN pg_class t ON c.conrelid = t.oid
+      JOIN pg_namespace n ON t.relnamespace = n.oid
+      WHERE n.nspname = 'tradexpar'
+        AND t.relname = 'user_company_roles'
+        AND c.contype = 'f'
+    LOOP
+      EXECUTE format('ALTER TABLE tradexpar.user_company_roles DROP CONSTRAINT %I', r.conname);
+    END LOOP;
+
+    ALTER TABLE tradexpar.user_company_roles
+      ADD CONSTRAINT user_company_roles_user_id_fkey
+      FOREIGN KEY (user_id) REFERENCES tradexpar.profiles(id) ON DELETE CASCADE;
+    ALTER TABLE tradexpar.user_company_roles
+      ADD CONSTRAINT user_company_roles_company_id_fkey
+      FOREIGN KEY (company_id) REFERENCES tradexpar.companies(id) ON DELETE CASCADE;
+    ALTER TABLE tradexpar.user_company_roles
+      ADD CONSTRAINT user_company_roles_role_id_fkey
+      FOREIGN KEY (role_id) REFERENCES tradexpar.roles(id) ON DELETE CASCADE;
+
+    INSERT INTO tradexpar.user_company_roles
+    SELECT * FROM public.user_company_roles
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
+END $$;
+
+-- Si sigue sin existir user_company_roles en tradexpar, la migración no puede continuar
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'tradexpar' AND table_name = 'user_company_roles'
+  ) THEN
+    RAISE EXCEPTION
+      'tradexpar.user_company_roles no existe y no se pudo clonar desde public.user_company_roles. Crea la tabla o revisa public.';
+  END IF;
+END $$;
+
 -- ---------------------------------------------------------------------------
--- 2. Helpers en public.* (invocados por políticas RLS): leen solo tradexpar
+-- 2. Helpers en public.* (invocados por políticas RLS): leen tradexpar
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN AS $$
@@ -121,7 +174,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON tradexpar.profiles TO authenticated, ser
 
 -- ---------------------------------------------------------------------------
 -- 5. Políticas que referían public.profiles en subconsultas → is_super_admin()
---    (public y tradexpar si ambos existen)
 -- ---------------------------------------------------------------------------
 DO $$
 DECLARE
@@ -189,7 +241,3 @@ BEGIN
 END $$;
 
 NOTIFY pgrst, 'reload schema';
-
--- Opcional tras validar en producción: si ya no usáis public.profiles, podéis eliminarla
--- (solo si no hay FKs ni dependencias):
--- DROP TABLE IF EXISTS public.profiles CASCADE;
