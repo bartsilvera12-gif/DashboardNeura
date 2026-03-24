@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio para configurar módulos y secciones por empresa.
  * Usado por el Super Admin en el panel de configuración de empresas.
@@ -24,7 +25,7 @@ export interface CompanyModuleSectionConfig {
 export async function getAllModules(): Promise<Module[]> {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
+    const { data } = await dbFrom(supabase, "modules").select("*").eq("is_active", true).order("sort_order");
     return data ?? [];
   } catch {
     return [];
@@ -42,12 +43,10 @@ export async function getCompanyModulesConfig(companyId: string): Promise<{
   try {
     const supabase = await getSupabaseClient();
     const [modulesRes, sectionsRes] = await Promise.all([
-      supabase
-        .from("company_modules")
+      dbFrom(supabase, "company_modules")
         .select("module_id, is_enabled, sort_order")
         .eq("company_id", companyId),
-      supabase
-        .from("company_module_sections")
+      dbFrom(supabase, "company_module_sections")
         .select("module_section_id, is_enabled, sort_order")
         .eq("company_id", companyId),
     ]);
@@ -74,8 +73,7 @@ export async function getCompanyModulesConfig(companyId: string): Promise<{
 export async function getModuleSections(moduleId: string): Promise<ModuleSection[]> {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase
-      .from("module_sections")
+    const { data } = await dbFrom(supabase, "module_sections")
       .select("*")
       .eq("module_id", moduleId)
       .order("sort_order");
@@ -96,7 +94,7 @@ export async function setCompanyModules(
   try {
     const supabase = await getSupabaseClient();
 
-    await supabase.from("company_modules").delete().eq("company_id", companyId);
+    await dbFrom(supabase, "company_modules").delete().eq("company_id", companyId);
 
     if (configs.length > 0) {
       const rows = configs.map((c) => ({
@@ -105,7 +103,7 @@ export async function setCompanyModules(
         is_enabled: c.is_enabled,
         sort_order: c.sort_order,
       }));
-      const { error } = await supabase.from("company_modules").insert(rows);
+      const { error } = await dbFrom(supabase, "company_modules").insert(rows);
       if (error) {
         console.error("setCompanyModules error:", error);
         return false;
@@ -128,7 +126,7 @@ export async function setCompanyModuleSections(
   try {
     const supabase = await getSupabaseClient();
 
-    await supabase.from("company_module_sections").delete().eq("company_id", companyId);
+    await dbFrom(supabase, "company_module_sections").delete().eq("company_id", companyId);
 
     if (configs.length > 0) {
       const rows = configs.map((c) => ({
@@ -137,7 +135,7 @@ export async function setCompanyModuleSections(
         is_enabled: c.is_enabled,
         sort_order: c.sort_order,
       }));
-      const { error } = await supabase.from("company_module_sections").insert(rows);
+      const { error } = await dbFrom(supabase, "company_module_sections").insert(rows);
       if (error) {
         console.error("setCompanyModuleSections error:", error);
         return false;

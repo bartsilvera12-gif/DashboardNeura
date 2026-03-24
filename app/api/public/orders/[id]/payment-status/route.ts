@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 import { NextRequest } from "next/server";
 import { getCompanyFromApiKey, jsonResponse } from "@/lib/api/public-api";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -45,8 +46,7 @@ export async function GET(
 
   const supabase = getSupabaseAdminClient();
 
-  const { data } = await supabase
-    .from("payment_intents")
+  const { data } = await dbFrom(supabase, "payment_intents")
     .select("id, status, amount, reference")
     .eq("order_id", orderId)
     .eq("reference", ref)

@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio de pedidos.
  * Integración con stock via recordStockSalidaPorVenta / recordStockDevolucionPorCancelacion.
@@ -59,8 +60,7 @@ async function generateOrderNumber(
 ): Promise<string> {
   const client = supabase ?? (await getSupabaseClient());
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const { count } = await client
-    .from("orders")
+  const { count } = await dbFrom(client, "orders")
     .select("*", { count: "exact", head: true })
     .eq("company_id", companyId)
     .gte("created_at", new Date().toISOString().slice(0, 10));
@@ -161,8 +161,7 @@ export async function createOrder(
     created_by: createdBy,
   };
 
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
+  const { data: order, error: orderError } = await dbFrom(supabase, "orders")
     .insert(orderRow)
     .select()
     .single();
@@ -180,13 +179,13 @@ export async function createOrder(
     company_id: companyId,
   }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(itemsToInsert);
+  const { error: itemsError } = await dbFrom(supabase, "order_items").insert(itemsToInsert);
 
   if (itemsError) {
     if (process.env.NODE_ENV === "development") {
       console.error("[createOrder] items:", itemsError);
     }
-    await supabase.from("orders").delete().eq("id", order.id);
+    await dbFrom(supabase, "orders").delete().eq("id", order.id);
     return { ok: false, error: itemsError.message };
   }
 
@@ -205,7 +204,7 @@ async function recordOrderEvent(
   changedBy?: string | null,
   notes?: string | null
 ): Promise<void> {
-  await supabase.from("order_status_history").insert({
+  await dbFrom(supabase, "order_status_history").insert({
     order_id: orderId,
     event_type: eventType,
     previous_status: previousStatus,
@@ -223,8 +222,7 @@ export async function getOrdersPendingConfirmation(
   limit = 100
 ): Promise<Order[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("orders")
+  const { data } = await dbFrom(supabase, "orders")
     .select("*")
     .eq("company_id", companyId)
     .eq("order_status", "pendiente_confirmacion")
@@ -242,8 +240,7 @@ export async function getOrdersConfirmed(
   limit = 100
 ): Promise<Order[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("orders")
+  const { data } = await dbFrom(supabase, "orders")
     .select("*")
     .eq("company_id", companyId)
     .eq("payment_status", "validado")
@@ -261,8 +258,7 @@ export async function getOrdersRejected(
   limit = 100
 ): Promise<Order[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("orders")
+  const { data } = await dbFrom(supabase, "orders")
     .select("*")
     .eq("company_id", companyId)
     .eq("order_status", "rechazado")
@@ -280,8 +276,7 @@ export async function getOrdersForKanban(
   statuses?: string[]
 ): Promise<Order[]> {
   const supabase = await getSupabaseClient();
-  let query = supabase
-    .from("orders")
+  let query = dbFrom(supabase, "orders")
     .select("*")
     .eq("company_id", companyId)
     .eq("payment_status", "validado")
@@ -304,8 +299,7 @@ export async function getOrderById(
   companyId: string
 ): Promise<OrderWithItems | null> {
   const supabase = await getSupabaseClient();
-  const { data: order } = await supabase
-    .from("orders")
+  const { data: order } = await dbFrom(supabase, "orders")
     .select("*")
     .eq("id", orderId)
     .eq("company_id", companyId)
@@ -313,8 +307,7 @@ export async function getOrderById(
 
   if (!order) return null;
 
-  const { data: items } = await supabase
-    .from("order_items")
+  const { data: items } = await dbFrom(supabase, "order_items")
     .select("*")
     .eq("order_id", orderId)
     .eq("company_id", companyId)
@@ -334,8 +327,7 @@ export async function getOrderItems(
   companyId: string
 ): Promise<OrderItem[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("order_items")
+  const { data } = await dbFrom(supabase, "order_items")
     .select("*")
     .eq("order_id", orderId)
     .eq("company_id", companyId)
@@ -370,8 +362,7 @@ export async function confirmOrderPayment(
   // Dropi, Shopify, externo NO afectan stock interno
   for (const item of items) {
     if (item.product_id && item.inventory_source === INVENTORY_SOURCE_PROPIO) {
-      const { data: product } = await supabase
-        .from("products")
+      const { data: product } = await dbFrom(supabase, "products")
         .select("track_stock, product_type")
         .eq("id", item.product_id)
         .single();
@@ -409,8 +400,7 @@ export async function confirmOrderPayment(
     updatePayload.payment_received_at = paymentData.receivedAt;
   }
 
-  const { error } = await supabase
-    .from("orders")
+  const { error } = await dbFrom(supabase, "orders")
     .update(updatePayload)
     .eq("id", orderId)
     .eq("company_id", companyId);
@@ -443,8 +433,7 @@ export async function rejectOrder(
   if (order.payment_status === "validado") return { ok: false, error: "No se puede rechazar un pedido con pago ya confirmado" };
 
   const supabase = await getSupabaseClient();
-  const { error } = await supabase
-    .from("orders")
+  const { error } = await dbFrom(supabase, "orders")
     .update({
       payment_status: "rechazado",
       order_status: "rechazado",
@@ -490,8 +479,7 @@ export async function cancelOrder(
   // Revertir stock SOLO para items con inventory_source = "propio"
   for (const item of items) {
     if (item.product_id && item.inventory_source === INVENTORY_SOURCE_PROPIO) {
-      const { data: product } = await supabase
-        .from("products")
+      const { data: product } = await dbFrom(supabase, "products")
         .select("track_stock, product_type")
         .eq("id", item.product_id)
         .single();
@@ -515,8 +503,7 @@ export async function cancelOrder(
     }
   }
 
-  const { error } = await supabase
-    .from("orders")
+  const { error } = await dbFrom(supabase, "orders")
     .update({
       order_status: "cancelado",
       updated_at: new Date().toISOString(),
@@ -567,8 +554,7 @@ export async function updateOrderStatus(
   }
 
   const supabase = await getSupabaseClient();
-  const { error } = await supabase
-    .from("orders")
+  const { error } = await dbFrom(supabase, "orders")
     .update({
       order_status: newStatus,
       updated_at: new Date().toISOString(),
@@ -606,8 +592,7 @@ export async function getOrderHistory(
   companyId: string
 ): Promise<OrderHistoryEvent[]> {
   const supabase = await getSupabaseClient();
-  const { data: events } = await supabase
-    .from("order_status_history")
+  const { data: events } = await dbFrom(supabase, "order_status_history")
     .select("id, order_id, event_type, previous_status, new_status, changed_by, notes, created_at")
     .eq("order_id", orderId)
     .order("created_at", { ascending: true });
@@ -617,8 +602,7 @@ export async function getOrderHistory(
   const creatorIds = [...new Set(events.map((e) => e.changed_by).filter(Boolean))] as string[];
   let creatorMap = new Map<string, string>();
   if (creatorIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
+    const { data: profiles } = await dbFrom(supabase, "profiles")
       .select("id, email")
       .in("id", creatorIds);
     creatorMap = new Map((profiles ?? []).map((p) => [p.id, p.email ?? ""]));
@@ -643,25 +627,21 @@ export async function getOrderStats(companyId: string) {
     { data: byStatus },
     { data: totalVendido },
   ] = await Promise.all([
-    supabase
-      .from("orders")
+    dbFrom(supabase, "orders")
       .select("*", { count: "exact", head: true })
       .eq("company_id", companyId)
       .gte("created_at", today),
-    supabase
-      .from("orders")
+    dbFrom(supabase, "orders")
       .select("*", { count: "exact", head: true })
       .eq("company_id", companyId)
       .eq("payment_status", "validado")
       .gte("payment_verified_at", today),
-    supabase
-      .from("orders")
+    dbFrom(supabase, "orders")
       .select("order_status")
       .eq("company_id", companyId)
       .eq("payment_status", "validado")
       .not("order_status", "eq", "cancelado"),
-    supabase
-      .from("orders")
+    dbFrom(supabase, "orders")
       .select("total")
       .eq("company_id", companyId)
       .eq("payment_status", "validado")
@@ -682,8 +662,7 @@ export async function getOrderStats(companyId: string) {
     enPreparacion: statusCounts["en_preparacion"] ?? 0,
     enCamino: statusCounts["en_camino"] ?? 0,
     entregados: statusCounts["entregado"] ?? 0,
-    rechazados: (await supabase
-      .from("orders")
+    rechazados: (await dbFrom(supabase, "orders")
       .select("*", { count: "exact", head: true })
       .eq("company_id", companyId)
       .eq("order_status", "rechazado")).count ?? 0,

@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio para configurar branding por empresa.
  */
@@ -20,8 +21,7 @@ export async function upsertCompanyBranding(
 ): Promise<CompanyBranding | null> {
   try {
     const supabase = await getSupabaseClient();
-    const { data, error } = await supabase
-      .from("company_branding")
+    const { data, error } = await dbFrom(supabase, "company_branding")
       .upsert(
         {
           company_id: companyId,

@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Categorías por empresa. Server-only.
  */
@@ -14,8 +15,7 @@ export interface CompanyCategory {
 
 export async function getCompanyCategories(companyId: string): Promise<CompanyCategory[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("company_categories")
+  const { data } = await dbFrom(supabase, "company_categories")
     .select("*")
     .eq("company_id", companyId)
     .order("sort_order")
@@ -27,8 +27,7 @@ export async function createCompanyCategory(companyId: string, name: string): Pr
   const supabase = await getSupabaseClient();
   const trimmed = name.trim();
   if (!trimmed) return null;
-  const { data, error } = await supabase
-    .from("company_categories")
+  const { data, error } = await dbFrom(supabase, "company_categories")
     .insert({ company_id: companyId, name: trimmed })
     .select()
     .single();

@@ -4,6 +4,7 @@
  * - listApiLogs: usa getSupabaseClient (RLS, solo super admin puede leer).
  */
 
+import { dbFrom } from "@/lib/db/schema";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseClient } from "@/lib/supabase";
 
@@ -33,7 +34,7 @@ export async function logApiRequest(params: {
 }): Promise<void> {
   try {
     const supabase = getSupabaseAdminClient();
-    await (supabase as any).from("api_logs").insert({
+    await dbFrom(supabase as any, "api_logs").insert({
       company_id: params.companyId,
       endpoint: params.endpoint,
       method: params.method,
@@ -54,8 +55,7 @@ export async function listApiLogs(limit = 50): Promise<ApiLogRow[]> {
   try {
     const supabase = await getSupabaseClient();
 
-    const { data: logs, error } = await (supabase as any)
-      .from("api_logs")
+    const { data: logs, error } = await dbFrom(supabase as any, "api_logs")
       .select("id, company_id, endpoint, method, status_code, success, error_message, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -83,8 +83,7 @@ export async function listApiLogs(limit = 50): Promise<ApiLogRow[]> {
       return rows.map((row) => ({ ...row, company_name: undefined }));
     }
 
-    const { data: companies } = await supabase
-      .from("companies")
+    const { data: companies } = await dbFrom(supabase, "companies")
       .select("id, name")
       .in("id", companyIds);
     const companyMap = new Map((companies ?? []).map((c: { id: string; name: string }) => [c.id, c.name]));

@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Creación de pedidos desde la API pública.
  * Valida productos y calcula totales en backend. NO confiar en el frontend.
@@ -66,8 +67,7 @@ export async function createOrderFromApi(
       return { ok: false, error: "productId inválido en item" };
     }
 
-    const { data } = await supabase
-      .from("products")
+    const { data } = await dbFrom(supabase, "products")
       .select("id, name, price, sku, company_id, is_active")
       .eq("id", productId)
       .single();

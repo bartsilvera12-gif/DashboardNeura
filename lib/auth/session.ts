@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Utilidades de sesión y usuario para el SaaS.
  * Obtiene usuario autenticado, perfil y empresa activa.
@@ -42,8 +43,7 @@ export async function getSession(): Promise<SessionData> {
     };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: profile } = await dbFrom(supabase, "profiles")
     .select("*")
     .eq("id", user.id)
     .single();
@@ -71,24 +71,21 @@ async function getCompaniesForUser(
 ) {
   try {
     if (isSuperAdmin) {
-      const { data } = await supabase
-        .from("companies")
+      const { data } = await dbFrom(supabase, "companies")
         .select("id, name, slug")
         .eq("is_active", true)
         .order("name");
       return data ?? [];
     }
 
-    const { data } = await supabase
-      .from("user_company_roles")
+    const { data } = await dbFrom(supabase, "user_company_roles")
       .select("company_id")
       .eq("user_id", userId);
 
     const companyIds = [...new Set((data ?? []).map((r) => r.company_id))];
     if (companyIds.length === 0) return [];
 
-    const { data: companies } = await supabase
-      .from("companies")
+    const { data: companies } = await dbFrom(supabase, "companies")
       .select("id, name, slug")
       .in("id", companyIds)
       .eq("is_active", true)

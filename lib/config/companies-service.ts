@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio CRUD de empresas para Super Admin.
  * Operaciones sobre la tabla companies y configuraciones relacionadas.
@@ -31,8 +32,7 @@ export interface UpdateCompanyInput {
 export async function createCompany(input: CreateCompanyInput): Promise<Company | null> {
   try {
     const supabase = await getSupabaseClient();
-    const { data, error } = await supabase
-      .from("companies")
+    const { data, error } = await dbFrom(supabase, "companies")
       .insert({
         name: input.name,
         slug: input.slug.toLowerCase().replace(/\s+/g, "-"),
@@ -81,8 +81,7 @@ export async function updateCompany(id: string, input: UpdateCompanyInput): Prom
     if (input.description !== undefined) payload.description = input.description?.trim() || null;
     if (input.is_active != null) payload.is_active = input.is_active;
 
-    const { data, error } = await supabase
-      .from("companies")
+    const { data, error } = await dbFrom(supabase, "companies")
       .update(payload)
       .eq("id", id)
       .select()
@@ -113,7 +112,7 @@ export async function setCompanyActive(id: string, isActive: boolean): Promise<b
 export async function getCompanyById(id: string): Promise<Company | null> {
   try {
     const supabase = await getSupabaseClient();
-    const { data, error } = await supabase.from("companies").select("*").eq("id", id).single();
+    const { data, error } = await dbFrom(supabase, "companies").select("*").eq("id", id).single();
     if (error) return null;
     return data;
   } catch {

@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio de templates por tipo de empresa.
  * Aplica configuración base al crear una empresa según su tipo.
@@ -87,16 +88,14 @@ export async function applyCompanyTemplate(
     const supabase = await getSupabaseClient();
 
     // Resolver IDs de módulos
-    const { data: modules } = await supabase
-      .from("modules")
+    const { data: modules } = await dbFrom(supabase, "modules")
       .select("id, code")
       .in("code", [...new Set([...template.modules.map((m) => m.code)])]);
     const moduleByCode = new Map((modules ?? []).map((m) => [m.code, m.id]));
 
     // Resolver IDs de module_sections
     const moduleIdsForSections = [...new Set(template.sections.map((s) => s.module_code))];
-    const { data: modsForSections } = await supabase
-      .from("modules")
+    const { data: modsForSections } = await dbFrom(supabase, "modules")
       .select("id, code")
       .in("code", moduleIdsForSections);
     const moduleIdByCode = new Map((modsForSections ?? []).map((m) => [m.code, m.id]));
@@ -105,8 +104,7 @@ export async function applyCompanyTemplate(
     for (const s of template.sections) {
       const moduleId = moduleIdByCode.get(s.module_code);
       if (!moduleId) continue;
-      const { data: sec } = await supabase
-        .from("module_sections")
+      const { data: sec } = await dbFrom(supabase, "module_sections")
         .select("id")
         .eq("module_id", moduleId)
         .eq("code", s.section_code)
@@ -121,8 +119,7 @@ export async function applyCompanyTemplate(
     }
 
     // Resolver IDs de widgets
-    const { data: widgets } = await supabase
-      .from("dashboard_widgets")
+    const { data: widgets } = await dbFrom(supabase, "dashboard_widgets")
       .select("id, code")
       .in("code", template.widgets.map((w) => w.code));
     const widgetByCode = new Map((widgets ?? []).map((w) => [w.code, w.id]));
@@ -137,7 +134,7 @@ export async function applyCompanyTemplate(
         sort_order: m.sort_order,
       }));
     if (companyModulesRows.length > 0) {
-      const { error: em } = await supabase.from("company_modules").insert(companyModulesRows);
+      const { error: em } = await dbFrom(supabase, "company_modules").insert(companyModulesRows);
       if (em) {
         console.error("applyCompanyTemplate company_modules:", em);
         return { ok: false, error: "Error al aplicar módulos del template" };
@@ -152,7 +149,7 @@ export async function applyCompanyTemplate(
         is_enabled: s.is_enabled,
         sort_order: s.sort_order,
       }));
-      const { error: es } = await supabase.from("company_module_sections").insert(sectionRows);
+      const { error: es } = await dbFrom(supabase, "company_module_sections").insert(sectionRows);
       if (es) {
         console.error("applyCompanyTemplate company_module_sections:", es);
         return { ok: false, error: "Error al aplicar secciones del template" };
@@ -170,7 +167,7 @@ export async function applyCompanyTemplate(
         sort_order: w.sort_order,
       }));
     if (widgetRows.length > 0) {
-      const { error: ew } = await supabase.from("company_dashboard_widgets").insert(widgetRows);
+      const { error: ew } = await dbFrom(supabase, "company_dashboard_widgets").insert(widgetRows);
       if (ew) {
         console.error("applyCompanyTemplate company_dashboard_widgets:", ew);
         return { ok: false, error: "Error al aplicar widgets del template" };

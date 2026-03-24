@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio de configuración por empresa.
  * Obtiene módulos, secciones, widgets, branding y campos de formulario
@@ -37,7 +38,7 @@ export async function getCompanyModules(companyId: string | null): Promise<Compa
   try {
     const supabase = await getSupabaseClient();
 
-    const { data: modules } = await supabase.from("modules").select("*").eq("is_active", true).order("sort_order");
+    const { data: modules } = await dbFrom(supabase, "modules").select("*").eq("is_active", true).order("sort_order");
 
     if (!modules?.length) {
       return { modules: [], sectionsByModule: {} };
@@ -50,8 +51,7 @@ export async function getCompanyModules(companyId: string | null): Promise<Compa
       };
     }
 
-    const { data: companyModules } = await supabase
-      .from("company_modules")
+    const { data: companyModules } = await dbFrom(supabase, "company_modules")
       .select("module_id, is_enabled, sort_order")
       .eq("company_id", companyId);
 
@@ -72,14 +72,12 @@ export async function getCompanyModules(companyId: string | null): Promise<Compa
       })
       .sort((a, b) => a.sort_order - b.sort_order);
 
-    const { data: sections } = await supabase
-      .from("module_sections")
+    const { data: sections } = await dbFrom(supabase, "module_sections")
       .select("*")
       .in("module_id", modules.map((m) => m.id))
       .order("sort_order");
 
-    const { data: companySections } = await supabase
-      .from("company_module_sections")
+    const { data: companySections } = await dbFrom(supabase, "company_module_sections")
       .select("module_section_id, is_enabled")
       .eq("company_id", companyId);
 
@@ -114,8 +112,7 @@ export async function getCompanyDashboardWidgets(companyId: string | null): Prom
   try {
     const supabase = await getSupabaseClient();
 
-    const { data: widgets } = await supabase
-      .from("dashboard_widgets")
+    const { data: widgets } = await dbFrom(supabase, "dashboard_widgets")
       .select("*")
       .order("sort_order");
 
@@ -134,8 +131,7 @@ export async function getCompanyDashboardWidgets(companyId: string | null): Prom
       };
     }
 
-    const { data: companyWidgets } = await supabase
-      .from("company_dashboard_widgets")
+    const { data: companyWidgets } = await dbFrom(supabase, "company_dashboard_widgets")
       .select("widget_id, is_enabled, config, sort_order")
       .eq("company_id", companyId);
 
@@ -175,11 +171,10 @@ export async function getCompanyFormFields(
   try {
     const supabase = await getSupabaseClient();
 
-    const { data: moduleRow } = await supabase.from("modules").select("id").eq("code", moduleCode).single();
+    const { data: moduleRow } = await dbFrom(supabase, "modules").select("id").eq("code", moduleCode).single();
     if (!moduleRow) return { fields: [] };
 
-    const { data: formDef } = await supabase
-      .from("form_definitions")
+    const { data: formDef } = await dbFrom(supabase, "form_definitions")
       .select("id")
       .eq("module_id", moduleRow.id)
       .eq("entity_code", entityCode)
@@ -190,8 +185,7 @@ export async function getCompanyFormFields(
       return { fields: [] };
     }
 
-    const { data: formFields } = await supabase
-      .from("form_fields")
+    const { data: formFields } = await dbFrom(supabase, "form_fields")
       .select("*")
       .eq("form_definition_id", formDef.id)
       .order("default_sort_order");
@@ -202,8 +196,7 @@ export async function getCompanyFormFields(
 
     let companyOverrides: CompanyFormField[] = [];
     if (companyId) {
-      const { data } = await supabase
-        .from("company_form_fields")
+      const { data } = await dbFrom(supabase, "company_form_fields")
         .select("*")
         .eq("company_id", companyId)
         .in("form_field_id", formFields.map((f) => f.id));
@@ -242,7 +235,7 @@ export async function getCompanyBranding(companyId: string | null): Promise<Comp
   if (!companyId) return null;
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase.from("company_branding").select("*").eq("company_id", companyId).single();
+    const { data } = await dbFrom(supabase, "company_branding").select("*").eq("company_id", companyId).single();
     return data;
   } catch {
     return null;
@@ -255,7 +248,7 @@ export async function getCompanyBranding(companyId: string | null): Promise<Comp
 export async function getCompanies(): Promise<Company[]> {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase.from("companies").select("*").order("name");
+    const { data } = await dbFrom(supabase, "companies").select("*").order("name");
     return data ?? [];
   } catch {
     return [];

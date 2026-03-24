@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio para configurar campos de formulario por empresa.
  */
@@ -12,8 +13,7 @@ export interface FormDefinitionWithFields extends FormDefinition {
 export async function getAllFormDefinitionsWithFields(): Promise<FormDefinitionWithFields[]> {
   try {
     const supabase = await getSupabaseClient();
-    const { data: defs } = await supabase
-      .from("form_definitions")
+    const { data: defs } = await dbFrom(supabase, "form_definitions")
       .select("*")
       .order("module_id");
 
@@ -21,8 +21,7 @@ export async function getAllFormDefinitionsWithFields(): Promise<FormDefinitionW
 
     const result: FormDefinitionWithFields[] = [];
     for (const d of defs) {
-      const { data: fields } = await supabase
-        .from("form_fields")
+      const { data: fields } = await dbFrom(supabase, "form_fields")
         .select("*")
         .eq("form_definition_id", d.id)
         .order("default_sort_order");
@@ -42,8 +41,7 @@ export async function getCompanyFormFieldsConfig(companyId: string): Promise<
 > {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase
-      .from("company_form_fields")
+    const { data } = await dbFrom(supabase, "company_form_fields")
       .select("form_field_id, is_visible, is_required, is_editable, sort_order")
       .eq("company_id", companyId);
 
@@ -76,7 +74,7 @@ export async function setCompanyFormFields(
 ): Promise<boolean> {
   try {
     const supabase = await getSupabaseClient();
-    await supabase.from("company_form_fields").delete().eq("company_id", companyId);
+    await dbFrom(supabase, "company_form_fields").delete().eq("company_id", companyId);
 
     if (configs.length > 0) {
       const rows = configs.map((c) => ({
@@ -87,7 +85,7 @@ export async function setCompanyFormFields(
         is_editable: c.is_editable,
         sort_order: c.sort_order,
       }));
-      const { error } = await supabase.from("company_form_fields").insert(rows);
+      const { error } = await dbFrom(supabase, "company_form_fields").insert(rows);
       if (error) {
         console.error("setCompanyFormFields error:", error);
         return false;

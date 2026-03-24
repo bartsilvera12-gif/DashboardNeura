@@ -4,6 +4,7 @@
  * Usa admin client para bypass RLS (solo invocable por super_admin vía action).
  */
 
+import { dbFrom } from "@/lib/db/schema";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createCompanyAdmin } from "@/lib/auth/create-company-admin";
 import { notifyAdminCreated } from "@/lib/notifications/onboarding-notify";
@@ -103,7 +104,7 @@ export async function executeOnboarding(
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let result = await (supabase.from("companies") as any).insert(companyRow).select("id").single();
+    let result = await (dbFrom(supabase, "companies") as any).insert(companyRow).select("id").single();
     let companyError = result.error;
 
     // Fallback: si falla por columnas inexistentes o schema cache desactualizado, intentar con schema base
@@ -119,7 +120,7 @@ export async function executeOnboarding(
         is_active: company.is_active,
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await (supabase.from("companies") as any).insert(baseRow).select("id").single();
+      result = await (dbFrom(supabase, "companies") as any).insert(baseRow).select("id").single();
       companyError = result.error;
     }
 
@@ -163,7 +164,7 @@ export async function executeOnboarding(
     };
     console.log("[ONBOARDING] Paso 2: Insertando branding", { companyId, brandingPayload });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: brandingData, error: brandingError } = await (supabase.from("company_branding") as any).insert(brandingPayload).select("id").single();
+    const { data: brandingData, error: brandingError } = await (dbFrom(supabase, "company_branding") as any).insert(brandingPayload).select("id").single();
 
     if (brandingError) {
       console.error("[ONBOARDING ERROR] Paso 2 branding - error real:", JSON.stringify({ message: brandingError?.message, code: brandingError?.code, details: brandingError?.details }));
@@ -186,7 +187,7 @@ export async function executeOnboarding(
         sort_order: m.sort_order,
       }));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: modError } = await (supabase.from("company_modules") as any).insert(moduleRows);
+      const { error: modError } = await (dbFrom(supabase, "company_modules") as any).insert(moduleRows);
       if (modError) {
         console.error("[ONBOARDING ERROR] Paso 3 módulos:", modError);
         if (companyId) await rollbackCompany(companyId);
@@ -207,7 +208,7 @@ export async function executeOnboarding(
         sort_order: s.sort_order,
       }));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: secError } = await (supabase.from("company_module_sections") as any).insert(sectionRows);
+      const { error: secError } = await (dbFrom(supabase, "company_module_sections") as any).insert(sectionRows);
       if (secError) {
         console.error("[ONBOARDING ERROR] Paso 4 secciones:", secError);
         if (companyId) await rollbackCompany(companyId);
@@ -229,7 +230,7 @@ export async function executeOnboarding(
         sort_order: w.sort_order,
       }));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: widError } = await (supabase.from("company_dashboard_widgets") as any).insert(widgetRows);
+      const { error: widError } = await (dbFrom(supabase, "company_dashboard_widgets") as any).insert(widgetRows);
       if (widError) {
         console.error("[ONBOARDING ERROR] Paso 5 widgets:", widError);
         if (companyId) await rollbackCompany(companyId);
@@ -302,7 +303,7 @@ async function rollbackCompany(companyId: string): Promise<void> {
     const supabase = getSupabaseAdminClient();
     // CASCADE elimina company_modules, company_module_sections, company_branding, etc.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("companies") as any).delete().eq("id", companyId);
+    await (dbFrom(supabase, "companies") as any).delete().eq("id", companyId);
   } catch (e) {
     console.error("rollbackCompany:", e);
   }

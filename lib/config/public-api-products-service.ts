@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Productos para la API pública.
  * Solo productos activos y visibles.
@@ -22,8 +23,7 @@ export async function getPublicProducts(
 ): Promise<PublicProduct[]> {
   const supabase = getSupabaseAdminClient();
 
-  const { data } = await supabase
-    .from("products")
+  const { data } = await dbFrom(supabase, "products")
     .select("id, name, price, stock, image, sku, description, category")
     .eq("company_id", companyId)
     .eq("is_active", true)

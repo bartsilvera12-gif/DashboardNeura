@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Crea un usuario admin principal para una empresa.
  * Usa Supabase Auth Admin API (requiere Service Role Key).
@@ -103,7 +104,7 @@ export async function createCompanyAdmin(
 
     // 2. Crear o actualizar perfil
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: profileError } = await (supabase.from("profiles") as any).upsert(
+    const { error: profileError } = await (dbFrom(supabase, "profiles") as any).upsert(
       {
         id: userId,
         email: emailTrimmed,
@@ -125,11 +126,11 @@ export async function createCompanyAdmin(
 
     // 3. Obtener role_id de company_admin (crear si no existe - fail-safe)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let { data: role } = await (supabase.from("roles") as any).select("id").eq("code", "company_admin").single();
+    let { data: role } = await (dbFrom(supabase, "roles") as any).select("id").eq("code", "company_admin").single();
 
     if (!role) {
       console.log("[ONBOARDING] createCompanyAdmin: rol company_admin no encontrado, intentando crearlo...");
-      const { data: newRole, error: insertRoleError } = await (supabase.from("roles") as any)
+      const { data: newRole, error: insertRoleError } = await (dbFrom(supabase, "roles") as any)
         .insert({ code: "company_admin", name: "Administrador de empresa" })
         .select("id")
         .single();
@@ -148,7 +149,7 @@ export async function createCompanyAdmin(
 
     // 4. Asignar user_company_roles
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: ucrError } = await (supabase.from("user_company_roles") as any).insert({
+    const { error: ucrError } = await (dbFrom(supabase, "user_company_roles") as any).insert({
       user_id: userId,
       company_id: companyId,
       role_id: role.id,

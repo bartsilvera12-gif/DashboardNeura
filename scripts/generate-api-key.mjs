@@ -3,7 +3,8 @@
  * Genera una API key para una empresa.
  * Uso: node scripts/generate-api-key.mjs <company_id>
  *
- * Requiere: .env.local con NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY
+ * Requiere: .env.local con NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.
+ * Opcional: NEXT_PUBLIC_BUSINESS_SCHEMA (por defecto tradexpar) para api_keys.
  */
 
 import fs from "fs";
@@ -28,6 +29,10 @@ import { createClient } from "@supabase/supabase-js";
 
 const KEY_PREFIX = "neura_";
 const KEY_PREFIX_LENGTH = 8;
+
+/** Mismo schema de negocio que la app (`NEXT_PUBLIC_BUSINESS_SCHEMA`, por defecto tradexpar). */
+const BUSINESS_SCHEMA =
+  process.env.NEXT_PUBLIC_BUSINESS_SCHEMA || "tradexpar";
 
 function hashKey(key) {
   return createHash("sha256").update(key).digest("hex");
@@ -54,7 +59,7 @@ async function main() {
   const keyHash = hashKey(rawKey);
   const keyPrefix = rawKey.slice(0, KEY_PREFIX_LENGTH);
 
-  const { error } = await supabase.from("api_keys").insert({
+  const { error } = await supabase.schema(BUSINESS_SCHEMA).from("api_keys").insert({
     company_id: companyId,
     key_hash: keyHash,
     key_prefix: keyPrefix,

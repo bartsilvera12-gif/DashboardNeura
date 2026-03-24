@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio de productos (SERVER ONLY - usa getSupabaseClient/next/headers).
  * Usa SOLO company_id para multiempresa. store_id se mantiene solo como legacy.
@@ -14,8 +15,7 @@ export type { Product, ProductType } from "@/lib/types/product";
  */
 export async function getProductsForCompany(companyId: string): Promise<Product[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("products")
+  const { data } = await dbFrom(supabase, "products")
     .select("*")
     .eq("company_id", companyId)
     .order("name");
@@ -40,7 +40,7 @@ export async function createProduct(companyId: string, input: Record<string, unk
   if (productType === "servicios" && row.track_stock === undefined) {
     row.track_stock = false;
   }
-  const { data, error } = await supabase.from("products").insert(row as Record<string, unknown>).select().single();
+  const { data, error } = await dbFrom(supabase, "products").insert(row as Record<string, unknown>).select().single();
   if (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("[createProduct] Supabase error:", JSON.stringify({ message: error.message, code: error.code, details: error.details }));
@@ -55,8 +55,7 @@ export async function createProduct(companyId: string, input: Record<string, unk
  */
 export async function updateProduct(id: string, input: Record<string, unknown>): Promise<Product | null> {
   const supabase = await getSupabaseClient();
-  const { data, error } = await supabase
-    .from("products")
+  const { data, error } = await dbFrom(supabase, "products")
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select()

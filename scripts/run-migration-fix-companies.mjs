@@ -27,22 +27,25 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+const BUSINESS_SCHEMA =
+  process.env.NEXT_PUBLIC_BUSINESS_SCHEMA || "tradexpar";
+
 const MIGRATION_SQL = `
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS company_type TEXT NOT NULL DEFAULT 'personalizado';
+ALTER TABLE ${BUSINESS_SCHEMA}.companies ADD COLUMN IF NOT EXISTS company_type TEXT NOT NULL DEFAULT 'personalizado';
 
 DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'companies_company_type_check'
   ) THEN
-    ALTER TABLE companies ADD CONSTRAINT companies_company_type_check
+    ALTER TABLE ${BUSINESS_SCHEMA}.companies ADD CONSTRAINT companies_company_type_check
       CHECK (company_type IN ('ecommerce', 'inmobiliaria', 'servicios', 'personalizado'));
   END IF;
 END $$;
 
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS description TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS contact_name TEXT;
-ALTER TABLE companies ADD COLUMN IF NOT EXISTS contact_phone TEXT;
+ALTER TABLE ${BUSINESS_SCHEMA}.companies ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE ${BUSINESS_SCHEMA}.companies ADD COLUMN IF NOT EXISTS contact_name TEXT;
+ALTER TABLE ${BUSINESS_SCHEMA}.companies ADD COLUMN IF NOT EXISTS contact_phone TEXT;
 
 NOTIFY pgrst, 'reload schema';
 `;
@@ -71,12 +74,15 @@ ERROR: Falta SUPABASE_DB_URL en .env.local
     console.log("OK: Migración 20250321120000 aplicada correctamente.");
 
     // Verificar columnas
-    const res = await client.query(`
+    const res = await client.query(
+      `
       SELECT column_name, data_type, is_nullable, column_default
       FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = 'companies'
+      WHERE table_schema = $1 AND table_name = 'companies'
       ORDER BY ordinal_position
-    `);
+    `,
+      [BUSINESS_SCHEMA]
+    );
     console.log("\nColumnas de companies:");
     for (const r of res.rows) {
       console.log(`  - ${r.column_name}: ${r.data_type} ${r.is_nullable === "YES" ? "NULL" : "NOT NULL"}`);

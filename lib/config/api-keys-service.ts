@@ -5,6 +5,7 @@
  */
 
 import { createHash, randomBytes } from "crypto";
+import { dbFrom } from "@/lib/db/schema";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseClient } from "@/lib/supabase";
 
@@ -49,8 +50,7 @@ export async function validateApiKey(
   const keyHash = hashKey(trimmed);
   const supabase = getSupabaseAdminClient();
 
-  const { data, error } = await supabase
-    .from("api_keys")
+  const { data, error } = await dbFrom(supabase, "api_keys")
     .select("company_id, is_active")
     .eq("key_hash", keyHash)
     .maybeSingle();
@@ -64,10 +64,8 @@ export async function validateApiKey(
     return { ok: false, error: "API key desactivada" };
   }
 
-  // Actualizar last_used_at (fire and forget). api_keys no está en tipos generados.
-  supabase
-    .from("api_keys")
-    // @ts-expect-error - api_keys table created in migration, not in generated types
+  // Actualizar last_used_at (fire and forget).
+  dbFrom(supabase, "api_keys")
     .update({ last_used_at: new Date().toISOString() })
     .eq("key_hash", keyHash)
     .then(() => {});
@@ -94,7 +92,7 @@ export async function createApiKey(
   const supabase = getSupabaseAdminClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any).from("api_keys").insert({
+  const { error } = await dbFrom(supabase as any, "api_keys").insert({
     company_id: companyId,
     key_hash: keyHash,
     key_prefix: keyPrefix,
@@ -119,8 +117,7 @@ export async function createApiKey(
 export async function listApiKeys(): Promise<ApiKeyRow[]> {
   const supabase = await getSupabaseClient();
 
-  const { data: keys, error } = await (supabase as any)
-    .from("api_keys")
+  const { data: keys, error } = await dbFrom(supabase as any, "api_keys")
     .select("id, company_id, key_prefix, name, is_active, last_used_at, created_at")
     .order("created_at", { ascending: false });
 
@@ -144,8 +141,7 @@ export async function listApiKeys(): Promise<ApiKeyRow[]> {
   if (rows.length === 0) return [];
 
   const companyIds = [...new Set(rows.map((r) => r.company_id))];
-  const { data: companies } = await supabase
-    .from("companies")
+  const { data: companies } = await dbFrom(supabase, "companies")
     .select("id, name")
     .in("id", companyIds);
   const companyMap = new Map((companies ?? []).map((c) => [c.id, c.name]));
@@ -165,8 +161,7 @@ export async function toggleApiKey(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await getSupabaseClient();
 
-  const { error } = await (supabase as any)
-    .from("api_keys")
+  const { error } = await dbFrom(supabase as any, "api_keys")
     .update({ is_active: isActive })
     .eq("id", id);
 
@@ -182,7 +177,7 @@ export async function toggleApiKey(
 export async function deleteApiKey(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await getSupabaseClient();
 
-  const { error } = await (supabase as any).from("api_keys").delete().eq("id", id);
+  const { error } = await dbFrom(supabase as any, "api_keys").delete().eq("id", id);
 
   if (error) {
     return { ok: false, error: error.message };

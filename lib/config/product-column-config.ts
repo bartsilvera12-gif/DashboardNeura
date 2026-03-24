@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Configuración de columnas de productos por empresa (SERVER ONLY - usa getSupabaseClient).
  */
@@ -81,8 +82,7 @@ export async function getCompanyProductColumnConfig(
 
   try {
     const supabase = await getSupabaseClient();
-    let query = supabase
-      .from("company_product_column_config")
+    let query = dbFrom(supabase, "company_product_column_config")
       .select("*")
       .eq("company_id", companyId)
       .order("sort_order");
@@ -159,8 +159,7 @@ export async function seedDefaultProductColumnConfig(
     affects_dashboard: d.affects_dashboard,
     sort_order: i,
   }));
-  const { error } = await client
-    .from("company_product_column_config")
+  const { error } = await dbFrom(client, "company_product_column_config")
     .upsert(rows, { onConflict: "company_id,column_key" });
   if (error) {
     console.error("seedDefaultProductColumnConfig:", error);
@@ -178,7 +177,7 @@ export async function setCompanyProductColumnConfig(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const supabase = await getSupabaseClient();
-    await supabase.from("company_product_column_config").delete().eq("company_id", companyId);
+    await dbFrom(supabase, "company_product_column_config").delete().eq("company_id", companyId);
     if (rows.length > 0) {
       const toInsert = rows.map((r) => ({
         company_id: companyId,
@@ -194,7 +193,7 @@ export async function setCompanyProductColumnConfig(
         affects_dashboard: r.affects_dashboard,
         sort_order: r.sort_order,
       }));
-      const { error } = await supabase.from("company_product_column_config").insert(toInsert);
+      const { error } = await dbFrom(supabase, "company_product_column_config").insert(toInsert);
       if (error) {
         console.error("setCompanyProductColumnConfig:", error);
         return { ok: false, error: error.message };
@@ -233,8 +232,7 @@ export async function getCompanyProductColumnConfigRaw(
   }
   try {
     const supabase = await getSupabaseClient();
-    const { data: configs } = await supabase
-      .from("company_product_column_config")
+    const { data: configs } = await dbFrom(supabase, "company_product_column_config")
       .select("*")
       .eq("company_id", companyId);
     const configMap = new Map((configs ?? []).map((c) => [c.column_key, c]));

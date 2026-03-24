@@ -21,15 +21,19 @@ const envPath = path.join(__dirname, "..", ".env.local");
 if (fs.existsSync(envPath)) {
   const content = fs.readFileSync(envPath, "utf-8");
   for (const line of content.split("\n")) {
-    const m = line.match(/^SUPABASE_DB_URL=(.+)$/);
+    const m = line.match(/^([^#=]+)=(.*)$/);
     if (m) {
-      process.env.SUPABASE_DB_URL = m[1].trim().replace(/^["']|["']$/g, "");
-      break;
+      const key = m[1].trim();
+      const val = m[2].trim().replace(/^["']|["']$/g, "");
+      process.env[key] = val;
     }
   }
 }
 
 async function main() {
+  const REPORT_SCHEMA =
+    process.env.NEXT_PUBLIC_BUSINESS_SCHEMA || "tradexpar";
+
   const url = process.env.SUPABASE_DB_URL;
   if (!url) {
     console.error(`
@@ -53,17 +57,21 @@ ERROR: Falta SUPABASE_DB_URL en el entorno.
   await client.connect();
 
   try {
-    // 1. Todas las tablas del schema public
-    const tablesRes = await client.query(`
+    // 1. Tablas del schema de negocio (NEXT_PUBLIC_BUSINESS_SCHEMA, por defecto tradexpar)
+    const tablesRes = await client.query(
+      `
       SELECT table_name
       FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+      WHERE table_schema = $1 AND table_type = 'BASE TABLE'
       ORDER BY table_name
-    `);
+    `,
+      [REPORT_SCHEMA]
+    );
     const tables = tablesRes.rows.map((r) => r.table_name);
 
     // 2. Columnas de cada tabla
-    const columnsRes = await client.query(`
+    const columnsRes = await client.query(
+      `
       SELECT
         c.table_name,
         c.column_name,
@@ -73,12 +81,15 @@ ERROR: Falta SUPABASE_DB_URL en el entorno.
         c.column_default,
         c.ordinal_position
       FROM information_schema.columns c
-      WHERE c.table_schema = 'public'
+      WHERE c.table_schema = $1
       ORDER BY c.table_name, c.ordinal_position
-    `);
+    `,
+      [REPORT_SCHEMA]
+    );
 
     // 3. Claves foráneas
-    const fkRes = await client.query(`
+    const fkRes = await client.query(
+      `
       SELECT
         tc.table_name,
         kcu.column_name,
@@ -90,29 +101,38 @@ ERROR: Falta SUPABASE_DB_URL en el entorno.
         ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
       JOIN information_schema.constraint_column_usage ccu
         ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
-      WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public'
+      WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = $1
       ORDER BY tc.table_name, kcu.column_name
-    `);
+    `,
+      [REPORT_SCHEMA]
+    );
 
     // 4. RLS: tablas con RLS habilitado
-    const rlsRes = await client.query(`
+    const rlsRes = await client.query(
+      `
       SELECT relname AS table_name, relrowsecurity AS rls_enabled
       FROM pg_class
-      WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+      WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = $1)
         AND relkind = 'r'
       ORDER BY relname
-    `);
+    `,
+      [REPORT_SCHEMA]
+    );
 
     // 5. Políticas RLS
-    const policiesRes = await client.query(`
+    const policiesRes = await client.query(
+      `
       SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
       FROM pg_policies
-      WHERE schemaname = 'public'
+      WHERE schemaname = $1
       ORDER BY tablename, policyname
-    `);
+    `,
+      [REPORT_SCHEMA]
+    );
 
     // 6. Índices
-    const idxRes = await client.query(`
+    const idxRes = await client.query(
+      `
       SELECT
         t.relname AS table_name,
         i.relname AS index_name,
@@ -124,11 +144,11 @@ ERROR: Falta SUPABASE_DB_URL en el entorno.
       JOIN pg_class i ON i.oid = ix.indexrelid
       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey) AND a.attisdropped = false
       JOIN pg_namespace n ON t.relnamespace = n.oid
-      WHERE n.nspname = 'public' AND t.relkind = 'r'
+      WHERE n.nspname = $1 AND t.relkind = 'r'
       ORDER BY t.relname, i.relname
-    `);
-
-    await client.end();
+    `,
+      [REPORT_SCHEMA]
+    );
 
     // Construir reporte
     const byTable = {};

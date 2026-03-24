@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio para configurar widgets del dashboard por empresa.
  */
@@ -15,8 +16,7 @@ export interface CompanyWidgetConfig {
 export async function getAllDashboardWidgets(): Promise<DashboardWidget[]> {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase
-      .from("dashboard_widgets")
+    const { data } = await dbFrom(supabase, "dashboard_widgets")
       .select("*")
       .order("sort_order");
     return data ?? [];
@@ -30,8 +30,7 @@ export async function getCompanyDashboardWidgetsConfig(companyId: string): Promi
 > {
   try {
     const supabase = await getSupabaseClient();
-    const { data } = await supabase
-      .from("company_dashboard_widgets")
+    const { data } = await dbFrom(supabase, "company_dashboard_widgets")
       .select("widget_id, is_enabled, config, sort_order")
       .eq("company_id", companyId);
 
@@ -55,7 +54,7 @@ export async function setCompanyDashboardWidgets(
 ): Promise<boolean> {
   try {
     const supabase = await getSupabaseClient();
-    await supabase.from("company_dashboard_widgets").delete().eq("company_id", companyId);
+    await dbFrom(supabase, "company_dashboard_widgets").delete().eq("company_id", companyId);
 
     if (configs.length > 0) {
       const rows = configs.map((c) => ({
@@ -65,7 +64,7 @@ export async function setCompanyDashboardWidgets(
         config: c.config ?? {},
         sort_order: c.sort_order,
       }));
-      const { error } = await supabase.from("company_dashboard_widgets").insert(rows);
+      const { error } = await dbFrom(supabase, "company_dashboard_widgets").insert(rows);
       if (error) {
         console.error("setCompanyDashboardWidgets error:", error);
         return false;

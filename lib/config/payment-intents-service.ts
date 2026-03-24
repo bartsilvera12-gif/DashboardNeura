@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Payment intents para la API pública.
  * Preparado para integración con PagoPar, Bancard, etc.
@@ -35,8 +36,7 @@ export async function createPaymentIntent(
 ): Promise<CreatePaymentIntentResult> {
   const supabase = getSupabaseAdminClient();
 
-  const { data } = await supabase
-    .from("orders")
+  const { data } = await dbFrom(supabase, "orders")
     .select("id, total, order_number, payment_status, order_status")
     .eq("id", orderId)
     .eq("company_id", companyId)
@@ -59,7 +59,7 @@ export async function createPaymentIntent(
   const amount = Number(order.total) ?? 0;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any).from("payment_intents").insert({
+  const { error } = await dbFrom(supabase as any, "payment_intents").insert({
     order_id: orderId,
     company_id: companyId,
     reference,

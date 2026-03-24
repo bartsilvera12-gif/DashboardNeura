@@ -1,3 +1,4 @@
+import { dbFrom } from "@/lib/db/schema";
 /**
  * Servicio de movimientos de stock.
  * Registra stock_inicial, entrada, salida, ajuste, devolucion.
@@ -80,8 +81,7 @@ export async function recordStockMovement(
   const supabase = await getSupabaseClient();
   const qty = Math.round(quantity);
 
-  const { data: product } = await supabase
-    .from("products")
+  const { data: product } = await dbFrom(supabase, "products")
     .select("stock, track_stock, product_type, allow_backorder, company_id")
     .eq("id", productId)
     .single();
@@ -165,8 +165,7 @@ export async function recordStockMovement(
     origin: origin || null,
   };
 
-  const { data: movement, error: movError } = await supabase
-    .from("stock_movements")
+  const { data: movement, error: movError } = await dbFrom(supabase, "stock_movements")
     .insert(insertPayload)
     .select()
     .single();
@@ -179,8 +178,7 @@ export async function recordStockMovement(
   }
 
   if (!skipProductUpdate) {
-    const { error: updateError } = await supabase
-      .from("products")
+    const { error: updateError } = await dbFrom(supabase, "products")
       .update({ stock: stockAfter, updated_at: new Date().toISOString() })
       .eq("id", productId);
 
@@ -285,8 +283,7 @@ export async function getStockMovements(
   productCompanyId?: string
 ): Promise<StockMovement[]> {
   const supabase = await getSupabaseClient();
-  let query = supabase
-    .from("stock_movements")
+  let query = dbFrom(supabase, "stock_movements")
     .select("*")
     .eq("product_id", productId)
     .order("created_at", { ascending: false })
@@ -312,8 +309,7 @@ export async function getStockMovementsWithCreators(
     return movements.map((m) => ({ ...m, created_by_email: null, created_by_name: null }));
   }
   const supabase = await getSupabaseClient();
-  const { data: profiles } = await supabase
-    .from("profiles")
+  const { data: profiles } = await dbFrom(supabase, "profiles")
     .select("id, email, full_name")
     .in("id", creatorIds);
   const creatorMap = new Map(
@@ -344,8 +340,7 @@ export async function getStockMovementsByCompany(
   limit = 100
 ): Promise<StockMovement[]> {
   const supabase = await getSupabaseClient();
-  const { data } = await supabase
-    .from("stock_movements")
+  const { data } = await dbFrom(supabase, "stock_movements")
     .select("*")
     .eq("company_id", companyId)
     .order("created_at", { ascending: false })
