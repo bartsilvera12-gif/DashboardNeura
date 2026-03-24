@@ -9,8 +9,9 @@ import { productTypeUsesStock } from "@/lib/types/product";
 import {
   getStockStatus,
   STOCK_STATUS_LABELS,
-  STOCK_STATUS_STYLES,
+  STOCK_STATUS_STYLES_DARK,
 } from "@/lib/utils/stock-status";
+import { sr } from "../../_components/saas-report-table";
 import { STOCK_MOVEMENT_TYPE_LABELS } from "@/lib/constants/stock-movements";
 import { RegisterMovementDrawer } from "./register-movement-drawer";
 import { MovementHistoryDrawer } from "./movement-history-drawer";
@@ -121,50 +122,32 @@ export function StockSection({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[800px] text-sm">
-          <thead>
-            <tr className="border-b border-zinc-200">
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                Producto
-              </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                SKU
-              </th>
-              <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                Stock actual
-              </th>
-              <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                Mínimo
-              </th>
-              <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                Punto pedido
-              </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                Estado
-              </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                Último movimiento
-              </th>
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className={sr.shell}>
+        <div className={sr.scroll}>
+          <table className={`${sr.table} min-w-[800px]`}>
+            <thead>
+              <tr className={sr.theadTr}>
+                <th className={sr.th}>Producto</th>
+                <th className={sr.th}>SKU</th>
+                <th className={sr.thRight}>Stock actual</th>
+                <th className={sr.thRight}>Mínimo</th>
+                <th className={sr.thRight}>Punto pedido</th>
+                <th className={sr.th}>Estado</th>
+                <th className={sr.th}>Último movimiento</th>
+                <th className={sr.thRight}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
             {products.length === 0 ? (
               <tr>
-                <td
-                  colSpan={8}
-                  className="px-3 py-8 text-center text-zinc-500"
-                >
+                <td colSpan={8} className={sr.empty}>
                   No hay productos. Añádelos desde Catálogo.
                 </td>
               </tr>
             ) : (
               products.map((p) => {
                 const status = getStockStatus(p);
-                const statusStyle = STOCK_STATUS_STYLES[status];
+                const statusDark = STOCK_STATUS_STYLES_DARK[status];
                 const usesStock = productTypeUsesStock(
                   p.product_type ?? "ecommerce",
                   p.track_stock
@@ -172,47 +155,42 @@ export function StockSection({
                 const lastMov = lastMovementByProduct[p.id];
 
                 return (
-                  <tr
-                    key={p.id}
-                    className="border-b border-zinc-100 hover:bg-zinc-50"
-                  >
-                    <td className="px-3 py-2 font-medium text-zinc-900">
-                      {p.name ?? "—"}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-600">{p.sku ?? "—"}</td>
-                    <td className="px-3 py-2 text-right">
+                  <tr key={p.id} className={sr.tr}>
+                    <td className={sr.tdLead}>{p.name ?? "—"}</td>
+                    <td className={sr.tdMono}>{p.sku ?? "—"}</td>
+                    <td className={sr.tdRight}>
                       {usesStock ? (p.stock ?? 0) : "—"}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className={sr.tdRight}>
                       {usesStock ? (p.min_stock ?? "—") : "—"}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className={sr.tdRight}>
                       {usesStock ? (p.reorder_point ?? "—") : "—"}
                     </td>
-                    <td className="px-3 py-2">
+                    <td className={sr.td}>
                       <span
-                        className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${statusStyle.bg} ${statusStyle.text}`}
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusDark}`}
                       >
                         {STOCK_STATUS_LABELS[status]}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-zinc-600">
+                    <td className={sr.td}>
                       {lastMov ? (
-                        <span className="text-xs">
+                        <span className="text-xs text-zinc-500">
                           {STOCK_MOVEMENT_TYPE_LABELS[lastMov.movement_type as keyof typeof STOCK_MOVEMENT_TYPE_LABELS] ??
                             lastMov.movement_type}{" "}
                           · {formatDate(lastMov.created_at)}
                         </span>
                       ) : (
-                        "—"
+                        <span className="text-zinc-600">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-wrap gap-1">
+                    <td className={sr.actions}>
+                      <div className={`${sr.actionsInner} gap-x-3`}>
                         <button
                           type="button"
                           onClick={() => setDetailProduct(p)}
-                          className="rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200"
+                          className={`${sr.actionPrimary} text-xs`}
                         >
                           Ver detalle
                         </button>
@@ -221,14 +199,14 @@ export function StockSection({
                             <button
                               type="button"
                               onClick={() => setRegisterProduct(p)}
-                              className="rounded bg-zinc-900 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800"
+                              className={`${sr.actionSuccess} text-xs`}
                             >
                               Registrar movimiento
                             </button>
                             <button
                               type="button"
                               onClick={() => setHistoryProduct(p)}
-                              className="rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200"
+                              className={`${sr.actionMuted} text-xs`}
                             >
                               Ver movimientos
                             </button>
@@ -242,6 +220,7 @@ export function StockSection({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <RegisterMovementDrawer

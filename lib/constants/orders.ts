@@ -64,6 +64,27 @@ export const ORDER_STATUS_STYLES: Record<
   cancelado: { bg: "bg-zinc-100", text: "text-zinc-600" },
 };
 
+/** Píldoras de estado de pedido en tablas oscuras. */
+export const ORDER_STATUS_STYLES_DARK: Record<OrderStatus, string> = {
+  pendiente_confirmacion:
+    "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25",
+  confirmado: "bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/25",
+  en_preparacion: "bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/25",
+  entregado_courier: "bg-cyan-500/15 text-cyan-300 ring-1 ring-cyan-500/25",
+  en_camino: "bg-sky-500/15 text-sky-200 ring-1 ring-sky-500/20",
+  entregado: "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  rechazado: "bg-red-500/15 text-red-400 ring-1 ring-red-500/25",
+  cancelado: "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25",
+};
+
+export const PAYMENT_STATUS_STYLES_DARK: Record<PaymentStatus, string> = {
+  pendiente: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25",
+  en_revision: "bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/25",
+  validado: "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  rechazado: "bg-red-500/15 text-red-400 ring-1 ring-red-500/25",
+  reembolsado: "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25",
+};
+
 export type SourceChannel =
   | "web"
   | "manual"

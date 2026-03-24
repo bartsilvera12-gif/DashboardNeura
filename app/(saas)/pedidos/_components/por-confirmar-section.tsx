@@ -3,7 +3,13 @@
 import { useState } from "react";
 import type { Order } from "@/lib/types/order";
 import type { Product } from "@/lib/types/product";
-import { PAYMENT_STATUS_LABELS, SOURCE_CHANNEL_LABELS } from "@/lib/constants/orders";
+import {
+  PAYMENT_STATUS_LABELS,
+  PAYMENT_STATUS_STYLES_DARK,
+  SOURCE_CHANNEL_LABELS,
+} from "@/lib/constants/orders";
+import type { PaymentStatus } from "@/lib/constants/orders";
+import { sr } from "../../_components/saas-report-table";
 import { confirmOrderPaymentAction, rejectOrderAction } from "../actions";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 import { CreateOrderDrawer } from "./create-order-drawer";
@@ -67,93 +73,82 @@ export function PorConfirmarSection({
       </div>
 
       {orders.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-8 text-center text-zinc-500">
+        <div className={sr.emptyBox}>
           No hay pedidos pendientes de confirmación.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200">
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Nº pedido
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Cliente
-                </th>
-                <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                  Monto
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Método pago
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Estado pago
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Fecha
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr
-                  key={o.id}
-                  className="border-b border-zinc-100 hover:bg-zinc-50"
-                >
-                  <td className="px-3 py-2 font-medium text-zinc-900">
-                    {o.order_number}
-                  </td>
-                  <td className="px-3 py-2 text-zinc-700">
-                    {o.customer_name || o.customer_email || "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right font-medium">
-                    {formatMoney(Number(o.total) || 0)}
-                  </td>
-                  <td className="px-3 py-2 text-zinc-600">
-                    {o.payment_method || "—"}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="rounded px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-                      {PAYMENT_STATUS_LABELS[o.payment_status as keyof typeof PAYMENT_STATUS_LABELS] ?? o.payment_status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-zinc-600">
-                    {formatDate(o.created_at)}
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setDetailOrder(o)}
-                        className="rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200"
-                      >
-                        Ver detalle
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleConfirm(o)}
-                        disabled={confirmingId === o.id}
-                        className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        {confirmingId === o.id ? "Confirmando…" : "Confirmar pago"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRejectOrder(o)}
-                        className="rounded bg-red-100 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
-                      >
-                        Rechazar
-                      </button>
-                    </div>
-                  </td>
+        <div className={sr.shell}>
+          <div className={sr.scroll}>
+            <table className={`${sr.table} min-w-[700px]`}>
+              <thead>
+                <tr className={sr.theadTr}>
+                  <th className={sr.th}>Nº pedido</th>
+                  <th className={sr.th}>Cliente</th>
+                  <th className={sr.thRight}>Monto</th>
+                  <th className={sr.th}>Método pago</th>
+                  <th className={sr.th}>Estado pago</th>
+                  <th className={sr.th}>Fecha</th>
+                  <th className={sr.thRight}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {orders.map((o) => {
+                  const payKey = o.payment_status as PaymentStatus;
+                  const payPill =
+                    PAYMENT_STATUS_STYLES_DARK[payKey] ??
+                    "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25";
+                  return (
+                    <tr key={o.id} className={sr.tr}>
+                      <td className={sr.tdLead}>{o.order_number}</td>
+                      <td className={sr.td}>
+                        {o.customer_name || o.customer_email || "—"}
+                      </td>
+                      <td className={sr.tdRightStrong}>
+                        {formatMoney(Number(o.total) || 0)}
+                      </td>
+                      <td className={sr.td}>{o.payment_method || "—"}</td>
+                      <td className={sr.td}>
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${payPill}`}
+                        >
+                          {PAYMENT_STATUS_LABELS[payKey] ?? o.payment_status}
+                        </span>
+                      </td>
+                      <td className={sr.td}>{formatDate(o.created_at)}</td>
+                      <td className={sr.actions}>
+                        <div className={sr.actionsInner}>
+                          <button
+                            type="button"
+                            onClick={() => setDetailOrder(o)}
+                            className={`${sr.actionPrimary} text-xs`}
+                          >
+                            Ver detalle
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleConfirm(o)}
+                            disabled={confirmingId === o.id}
+                            className={`${sr.actionSuccess} text-xs`}
+                          >
+                            {confirmingId === o.id
+                              ? "Confirmando…"
+                              : "Confirmar pago"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setRejectOrder(o)}
+                            className={`${sr.actionDanger} text-xs`}
+                          >
+                            Rechazar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

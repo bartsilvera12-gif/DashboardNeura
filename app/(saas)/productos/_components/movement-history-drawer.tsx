@@ -11,6 +11,7 @@ import {
   STOCK_ORIGIN_LABELS,
 } from "@/lib/constants/stock-movements";
 import { getStockMovementsAction } from "../actions";
+import { sr } from "../../_components/saas-report-table";
 
 interface MovementHistoryDrawerProps {
   product: Product | null;
@@ -113,79 +114,51 @@ export function MovementHistoryDrawer({
               No hay movimientos registrados.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Fecha
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Tipo
-                    </th>
-                    <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                      Cant.
-                    </th>
-                    <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                      Anterior
-                    </th>
-                    <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                      Nuevo
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Motivo
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Observación
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Usuario
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                      Origen
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {movements.map((m) => (
-                    <tr
-                      key={m.id}
-                      className="border-b border-zinc-100 hover:bg-zinc-50"
-                    >
-                      <td className="px-3 py-2 text-zinc-600">
-                        {formatDate(m.created_at)}
-                      </td>
-                      <td className="px-3 py-2">
-                        {STOCK_MOVEMENT_TYPE_LABELS[
-                          m.movement_type as keyof typeof STOCK_MOVEMENT_TYPE_LABELS
-                        ] ?? m.movement_type}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        {m.movement_type === "salida" ? "-" : "+"}
-                        {m.quantity}
-                      </td>
-                      <td className="px-3 py-2 text-right text-zinc-600">
-                        {m.previous_stock}
-                      </td>
-                      <td className="px-3 py-2 text-right font-medium">
-                        {m.new_stock}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-600">
-                        {m.reason ?? "—"}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-600 max-w-[120px] truncate" title={m.notes ?? undefined}>
-                        {m.notes ?? "—"}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-600">
-                        {creatorLabel(m)}
-                      </td>
-                      <td className="px-3 py-2 text-zinc-600">
-                        {originLabel(m.origin)}
-                      </td>
+            <div className={sr.shell}>
+              <div className={sr.scroll}>
+                <table className={`${sr.table} min-w-[900px]`}>
+                  <thead>
+                    <tr className={sr.theadTr}>
+                      <th className={sr.th}>Fecha</th>
+                      <th className={sr.th}>Tipo</th>
+                      <th className={sr.thRight}>Cant.</th>
+                      <th className={sr.thRight}>Anterior</th>
+                      <th className={sr.thRight}>Nuevo</th>
+                      <th className={sr.th}>Motivo</th>
+                      <th className={sr.th}>Observación</th>
+                      <th className={sr.th}>Usuario</th>
+                      <th className={sr.th}>Origen</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {movements.map((m) => (
+                      <tr key={m.id} className={sr.tr}>
+                        <td className={sr.td}>{formatDate(m.created_at)}</td>
+                        <td className={sr.td}>
+                          {STOCK_MOVEMENT_TYPE_LABELS[
+                            m.movement_type as keyof typeof STOCK_MOVEMENT_TYPE_LABELS
+                          ] ?? m.movement_type}
+                        </td>
+                        <td className={sr.tdRight}>
+                          {m.movement_type === "salida" ? "-" : "+"}
+                          {m.quantity}
+                        </td>
+                        <td className={sr.tdRight}>{m.previous_stock}</td>
+                        <td className={sr.tdRightStrong}>{m.new_stock}</td>
+                        <td className={sr.td}>{m.reason ?? "—"}</td>
+                        <td
+                          className={`${sr.td} max-w-[120px] truncate`}
+                          title={m.notes ?? undefined}
+                        >
+                          {m.notes ?? "—"}
+                        </td>
+                        <td className={sr.td}>{creatorLabel(m)}</td>
+                        <td className={sr.td}>{originLabel(m.origin)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

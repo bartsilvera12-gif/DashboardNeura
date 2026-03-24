@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCategoryAction } from "../actions";
 import type { CompanyCategory } from "@/lib/config/company-categories-service";
+import { sr } from "../../_components/saas-report-table";
 
 interface CategoriesSectionProps {
   companyId: string;
@@ -71,29 +72,31 @@ export function CategoriesSection({ companyId, categories, fromProducto = false,
       </form>
       {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[300px] text-sm">
-          <thead>
-            <tr className="border-b border-zinc-200">
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">Nombre</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.length === 0 ? (
-              <tr>
-                <td className="px-3 py-6 text-center text-zinc-500">
-                  No hay categorías. Crea la primera para poder asignar productos.
-                </td>
+      <div className={sr.shell}>
+        <div className={sr.scroll}>
+          <table className={`${sr.table} min-w-[300px]`}>
+            <thead>
+              <tr className={sr.theadTr}>
+                <th className={sr.th}>Nombre</th>
               </tr>
-            ) : (
-              categories.map((c) => (
-                <tr key={c.id} className="border-b border-zinc-100 hover:bg-zinc-50">
-                  <td className="px-3 py-2">{c.name}</td>
+            </thead>
+            <tbody>
+              {categories.length === 0 ? (
+                <tr>
+                  <td className={sr.empty}>
+                    No hay categorías. Crea la primera para poder asignar productos.
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                categories.map((c) => (
+                  <tr key={c.id} className={sr.tr}>
+                    <td className={sr.tdLead}>{c.name}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

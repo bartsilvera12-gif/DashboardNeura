@@ -35,6 +35,16 @@ export const STOCK_STATUS_STYLES: Record<
   sobrestock: { bg: "bg-sky-50", text: "text-sky-700" },
 };
 
+/** Píldoras para tablas oscuras (reporte SaaS). */
+export const STOCK_STATUS_STYLES_DARK: Record<StockStatus, string> = {
+  sin_control: "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25",
+  sin_stock: "bg-red-500/15 text-red-400 ring-1 ring-red-500/25",
+  bajo_stock: "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/25",
+  en_punto_pedido: "bg-amber-500/15 text-amber-200 ring-1 ring-amber-500/20",
+  stock_normal: "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/25",
+  sobrestock: "bg-sky-500/15 text-sky-400 ring-1 ring-sky-500/25",
+};
+
 /**
  * Calcula el estado de stock de un producto.
  */

@@ -4,9 +4,11 @@ import { useState } from "react";
 import type { Order } from "@/lib/types/order";
 import {
   ORDER_STATUS_LABELS,
-  ORDER_STATUS_STYLES,
+  ORDER_STATUS_STYLES_DARK,
   SOURCE_CHANNEL_LABELS,
 } from "@/lib/constants/orders";
+import type { OrderStatus } from "@/lib/constants/orders";
+import { sr } from "../../_components/saas-report-table";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 
 interface ConfirmadasSectionProps {
@@ -53,95 +55,76 @@ export function ConfirmadasSection({
       </div>
 
       {orders.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-8 text-center text-zinc-500">
+        <div className={sr.emptyBox}>
           No hay ventas confirmadas aún.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-sm">
-            <thead>
-              <tr className="border-b border-zinc-200">
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Nº pedido
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Cliente
-                </th>
-                <th className="px-3 py-2 text-right font-medium text-zinc-600">
-                  Total
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Estado
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Canal
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Fecha
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-zinc-600">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => {
-                const style =
-                  ORDER_STATUS_STYLES[o.order_status as keyof typeof ORDER_STATUS_STYLES];
-                return (
-                  <tr
-                    key={o.id}
-                    className="border-b border-zinc-100 hover:bg-zinc-50"
-                  >
-                    <td className="px-3 py-2 font-medium text-zinc-900">
-                      {o.order_number}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-700">
-                      {o.customer_name || o.customer_email || "—"}
-                    </td>
-                    <td className="px-3 py-2 text-right font-medium">
-                      {formatMoney(Number(o.total) || 0)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${
-                          style?.bg ?? "bg-zinc-100"
-                        } ${style?.text ?? "text-zinc-700"}`}
-                      >
-                        {ORDER_STATUS_LABELS[
-                          o.order_status as keyof typeof ORDER_STATUS_LABELS
-                        ] ?? o.order_status}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-zinc-600">
-                      {SOURCE_CHANNEL_LABELS[o.source_channel ?? ""] ??
-                        o.source_channel ??
-                        "—"}
-                    </td>
-                    <td className="px-3 py-2 text-zinc-600">
-                      {formatDate(o.created_at)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => setDetailOrder(o)}
-                        className="rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-200"
-                      >
-                        Ver detalle
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onSwitchToKanban}
-                        className="ml-1 rounded bg-zinc-900 px-2 py-1 text-xs font-medium text-white hover:bg-zinc-800"
-                      >
-                        Ir a Kanban
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className={sr.shell}>
+          <div className={sr.scroll}>
+            <table className={`${sr.table} min-w-[700px]`}>
+              <thead>
+                <tr className={sr.theadTr}>
+                  <th className={sr.th}>Nº pedido</th>
+                  <th className={sr.th}>Cliente</th>
+                  <th className={sr.thRight}>Total</th>
+                  <th className={sr.th}>Estado</th>
+                  <th className={sr.th}>Canal</th>
+                  <th className={sr.th}>Fecha</th>
+                  <th className={sr.thRight}>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o) => {
+                  const st = o.order_status as OrderStatus;
+                  const pill =
+                    ORDER_STATUS_STYLES_DARK[st] ??
+                    "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25";
+                  return (
+                    <tr key={o.id} className={sr.tr}>
+                      <td className={sr.tdLead}>{o.order_number}</td>
+                      <td className={sr.td}>
+                        {o.customer_name || o.customer_email || "—"}
+                      </td>
+                      <td className={sr.tdRightStrong}>
+                        {formatMoney(Number(o.total) || 0)}
+                      </td>
+                      <td className={sr.td}>
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${pill}`}
+                        >
+                          {ORDER_STATUS_LABELS[st] ?? o.order_status}
+                        </span>
+                      </td>
+                      <td className={sr.td}>
+                        {SOURCE_CHANNEL_LABELS[o.source_channel ?? ""] ??
+                          o.source_channel ??
+                          "—"}
+                      </td>
+                      <td className={sr.td}>{formatDate(o.created_at)}</td>
+                      <td className={sr.actions}>
+                        <div className={sr.actionsInner}>
+                          <button
+                            type="button"
+                            onClick={() => setDetailOrder(o)}
+                            className={`${sr.actionPrimary} text-xs`}
+                          >
+                            Ver detalle
+                          </button>
+                          <button
+                            type="button"
+                            onClick={onSwitchToKanban}
+                            className={`${sr.actionMuted} text-xs`}
+                          >
+                            Ir a Kanban
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

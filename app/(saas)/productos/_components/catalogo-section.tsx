@@ -13,6 +13,7 @@ import {
 import { CategorySelect } from "./category-select";
 import { ProductImagesUrlsField } from "./product-images-urls-field";
 import { normalizeProductImageUrls } from "@/lib/utils/product-images";
+import { sr, SaasStatusBadge } from "../../_components/saas-report-table";
 
 interface CatalogoSectionProps {
   companyId: string;
@@ -43,18 +44,44 @@ function formatValue(val: unknown, key?: string): string {
 function renderCatalogListCell(p: Product, col: ResolvedProductColumn): ReactNode {
   if (col.key === "description") {
     const raw = p[col.key];
-    if (raw == null || String(raw).trim() === "") return "—";
+    if (raw == null || String(raw).trim() === "") {
+      return <span className="text-zinc-600">—</span>;
+    }
     const full = String(raw).trim();
     if (full.length <= DESCRIPTION_LIST_MAX_CHARS) {
-      return <span className="block max-w-md">{full}</span>;
+      return <span className="block max-w-md text-zinc-300">{full}</span>;
     }
     const short =
       full.slice(0, DESCRIPTION_LIST_MAX_CHARS).trimEnd() + "…";
     return (
-      <span className="block max-w-md leading-snug" title={full}>
+      <span
+        className="block max-w-md leading-snug text-zinc-300"
+        title={full}
+      >
         {short}
       </span>
     );
+  }
+  if (col.key === "status") {
+    const raw = p[col.key];
+    if (raw == null || String(raw).trim() === "") {
+      return <span className="text-zinc-600">—</span>;
+    }
+    const t = String(raw).trim();
+    const lower = t.toLowerCase();
+    let variant: "active" | "inactive" | "neutral" = "neutral";
+    if (/dispon|activ|ok|vigente|publicad/.test(lower)) variant = "active";
+    else if (/inactiv|no dispon|agotado|paus/.test(lower)) {
+      variant = "inactive";
+    }
+    return <SaasStatusBadge variant={variant}>{t}</SaasStatusBadge>;
+  }
+  if (col.key === "featured") {
+    const v = p[col.key] as unknown;
+    if (v === true || v === "true" || v === "1") {
+      return <SaasStatusBadge variant="active">Sí</SaasStatusBadge>;
+    }
+    return <SaasStatusBadge variant="inactive">No</SaasStatusBadge>;
   }
   return formatValue(p[col.key], col.key);
 }
@@ -376,57 +403,67 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
         </form>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px] text-sm">
-          <thead>
-            <tr className="border-b border-zinc-200">
-              {listCols.map((c) => (
-                <th key={c.key} className="px-3 py-2 text-left font-medium text-zinc-600">
-                  {c.label}
-                </th>
-              ))}
-              <th className="px-3 py-2 text-left font-medium text-zinc-600">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={listCols.length + 1} className="px-3 py-8 text-center text-zinc-500">
-                  No hay productos. Crea uno para comenzar.
-                </td>
+      <div className={sr.shell}>
+        <div className={sr.scroll}>
+          <table className={`${sr.table} min-w-[600px]`}>
+            <thead>
+              <tr className={sr.theadTr}>
+                {listCols.map((c) => (
+                  <th key={c.key} className={sr.th}>
+                    {c.label}
+                  </th>
+                ))}
+                <th className={sr.thRight}>Acciones</th>
               </tr>
-            ) : (
-              products.map((p) => (
-                <tr key={p.id} className="border-b border-zinc-100 hover:bg-zinc-50">
-                  {listCols.map((c) => (
-                    <td key={c.key} className="max-w-[min(20rem,35vw)] px-3 py-2 align-top">
-                      {renderCatalogListCell(p, c)}
-                    </td>
-                  ))}
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEdit(p)}
-                        className="text-zinc-600 hover:text-zinc-900"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(p.id, p.name)}
-                        disabled={deletingId === p.id}
-                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                      >
-                        {deletingId === p.id ? "Eliminando…" : "Eliminar"}
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {products.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={listCols.length + 1}
+                    className={sr.empty}
+                  >
+                    No hay productos. Crea uno para comenzar.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                products.map((p) => (
+                  <tr key={p.id} className={sr.tr}>
+                    {listCols.map((c) => (
+                      <td
+                        key={c.key}
+                        className={`max-w-[min(20rem,35vw)] align-top ${
+                          c.key === "name" ? sr.tdLead : sr.td
+                        }`}
+                      >
+                        {renderCatalogListCell(p, c)}
+                      </td>
+                    ))}
+                    <td className={sr.actions}>
+                      <div className={sr.actionsInner}>
+                        <button
+                          type="button"
+                          onClick={() => openEdit(p)}
+                          className={sr.actionPrimary}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id, p.name)}
+                          disabled={deletingId === p.id}
+                          className={sr.actionDanger}
+                        >
+                          {deletingId === p.id ? "Eliminando…" : "Eliminar"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

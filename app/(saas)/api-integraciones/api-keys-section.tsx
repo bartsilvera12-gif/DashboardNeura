@@ -10,6 +10,7 @@ import {
   deleteApiKeyAction,
 } from "./actions";
 import { CopyButton } from "./_components/copy-button";
+import { sr, SaasStatusBadge } from "../_components/saas-report-table";
 
 interface ApiKeysSectionProps {
   apiKeys: ApiKeyRow[];
@@ -79,94 +80,68 @@ export function ApiKeysSection({ apiKeys, companies, baseUrl }: ApiKeysSectionPr
       </div>
 
       {apiKeys.length === 0 ? (
-        <div className="mt-4 rounded-lg border border-dashed border-zinc-200 p-8 text-center text-sm text-zinc-500">
+        <div className={`mt-4 ${sr.emptyBox}`}>
           No hay API keys. Crea una para conectar frontends externos.
         </div>
       ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full divide-y divide-zinc-200">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Nombre
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Empresa
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Prefijo
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Estado
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Último uso
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Creada
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200">
-              {apiKeys.map((key) => (
-                <tr key={key.id} className="hover:bg-zinc-50/50">
-                  <td className="px-4 py-3 text-sm text-zinc-900">
-                    {key.name ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-700">
-                    {key.company_name ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-sm text-zinc-600">
-                    {key.key_prefix}...
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                        key.is_active
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-zinc-100 text-zinc-600"
-                      }`}
-                    >
-                      {key.is_active ? "Activa" : "Inactiva"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-600">
-                    {formatDate(key.last_used_at)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-zinc-600">
-                    {formatDate(key.created_at)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <form
-                        action={toggleApiKeyAction.bind(null, key.id, !key.is_active)}
-                        className="inline"
-                      >
-                        <ToggleButton
-                          isActive={key.is_active}
-                          label={key.is_active ? "Desactivar" : "Reactivar"}
-                        />
-                      </form>
-                      <form
-                        action={deleteApiKeyAction.bind(null, key.id)}
-                        className="inline"
-                        onSubmit={(e) => {
-                          if (!confirm("¿Revocar esta API key? No se podrá recuperar.")) {
-                            e.preventDefault();
-                          }
-                        }}
-                      >
-                        <DeleteButton />
-                      </form>
-                    </div>
-                  </td>
+        <div className={`mt-4 ${sr.shell}`}>
+          <div className={sr.scroll}>
+            <table className={sr.table}>
+              <thead>
+                <tr className={sr.theadTr}>
+                  <th className={sr.th}>Nombre</th>
+                  <th className={sr.th}>Empresa</th>
+                  <th className={sr.th}>Prefijo</th>
+                  <th className={sr.th}>Estado</th>
+                  <th className={sr.th}>Último uso</th>
+                  <th className={sr.th}>Creada</th>
+                  <th className={sr.thRight}>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {apiKeys.map((key) => (
+                  <tr key={key.id} className={sr.tr}>
+                    <td className={sr.tdLead}>{key.name ?? "—"}</td>
+                    <td className={sr.td}>{key.company_name ?? "—"}</td>
+                    <td className={`${sr.tdMono} max-w-[10rem] truncate`}>
+                      {key.key_prefix}...
+                    </td>
+                    <td className={sr.td}>
+                      <SaasStatusBadge variant={key.is_active ? "active" : "inactive"}>
+                        {key.is_active ? "Activa" : "Inactiva"}
+                      </SaasStatusBadge>
+                    </td>
+                    <td className={sr.td}>{formatDate(key.last_used_at)}</td>
+                    <td className={sr.td}>{formatDate(key.created_at)}</td>
+                    <td className={sr.actions}>
+                      <div className={sr.actionsInner}>
+                        <form
+                          action={toggleApiKeyAction.bind(null, key.id, !key.is_active)}
+                          className="inline"
+                        >
+                          <ToggleButton
+                            isActive={key.is_active}
+                            label={key.is_active ? "Desactivar" : "Reactivar"}
+                          />
+                        </form>
+                        <form
+                          action={deleteApiKeyAction.bind(null, key.id)}
+                          className="inline"
+                          onSubmit={(e) => {
+                            if (!confirm("¿Revocar esta API key? No se podrá recuperar.")) {
+                              e.preventDefault();
+                            }
+                          }}
+                        >
+                          <DeleteButton />
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -196,7 +171,7 @@ function ToggleButton({
     <button
       type="submit"
       disabled={pending}
-      className="text-sm font-medium text-zinc-600 hover:text-zinc-900 disabled:opacity-50"
+      className={sr.actionPrimary}
     >
       {pending ? "..." : label}
     </button>
@@ -209,7 +184,7 @@ function DeleteButton() {
     <button
       type="submit"
       disabled={pending}
-      className="text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+      className={sr.actionDanger}
     >
       {pending ? "..." : "Revocar"}
     </button>
