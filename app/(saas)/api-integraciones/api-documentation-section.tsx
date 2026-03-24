@@ -83,7 +83,8 @@ export function ApiDocumentationSection() {
       "name": "Producto",
       "price": 1000,
       "stock": 10,
-      "image": "url",
+      "image": "https://…/primera.jpg",
+      "images": ["https://…/primera.jpg", "https://…/segunda.jpg"],
       "sku": "SKU-001",
       "description": "...",
       "category": "Categoría"

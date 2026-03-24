@@ -15,6 +15,8 @@ export interface Product {
   price: number | null;
   cost_price: number | null;
   image: string | null;
+  /** URLs de galería (JSON en BD). La primera suele coincidir con `image`. */
+  images?: string[] | null;
   category: string | null;
   stock: number | null;
   sku: string | null;

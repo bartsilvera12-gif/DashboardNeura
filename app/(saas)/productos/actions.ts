@@ -9,6 +9,7 @@ import {
 } from "@/lib/config/stock-movements-service";
 import { createCompanyCategory } from "@/lib/config/company-categories-service";
 import { translateSupabaseError } from "@/lib/utils/supabase-error-messages";
+import { applyProductImagesFromFormData } from "@/lib/utils/product-form-images";
 import { getSession } from "@/lib/auth/session";
 
 export async function createProductAction(
@@ -26,7 +27,6 @@ export async function createProductAction(
     "brand",
     "price",
     "cost_price",
-    "image",
     "status",
     "featured",
     "stock",
@@ -54,6 +54,7 @@ export async function createProductAction(
   if (row.product_type === "servicios" && row.track_stock === undefined) {
     row.track_stock = false;
   }
+  applyProductImagesFromFormData(formData, row);
   try {
     const product = await createProduct(companyId, row);
     if (!product) return { ok: false, error: "No se pudo crear el producto" };
@@ -94,7 +95,6 @@ export async function updateProductAction(
     "brand",
     "price",
     "cost_price",
-    "image",
     "status",
     "featured",
     "stock",
@@ -122,6 +122,7 @@ export async function updateProductAction(
   if (row.product_type === "servicios" && row.track_stock === undefined) {
     row.track_stock = false;
   }
+  applyProductImagesFromFormData(formData, row);
   try {
     const product = await updateProduct(id, row);
     if (!product) return { ok: false, error: "No se pudo actualizar el producto" };

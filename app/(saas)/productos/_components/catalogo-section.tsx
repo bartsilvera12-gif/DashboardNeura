@@ -7,6 +7,8 @@ import type { Product } from "@/lib/types/product";
 import type { CompanyCategory } from "@/lib/config/company-categories-service";
 import { createProductAction, updateProductAction } from "../actions";
 import { CategorySelect } from "./category-select";
+import { ProductImagesUrlsField } from "./product-images-urls-field";
+import { normalizeProductImageUrls } from "@/lib/utils/product-images";
 
 interface CatalogoSectionProps {
   companyId: string;
@@ -19,8 +21,13 @@ interface CatalogoSectionProps {
   onSwitchToCategories?: () => void;
 }
 
-function formatValue(val: unknown, _key?: string): string {
+function formatValue(val: unknown, key?: string): string {
   if (val == null) return "—";
+  if (key === "images" && Array.isArray(val)) {
+    const n = val.length;
+    if (n === 0) return "—";
+    return `${n} imagen${n === 1 ? "" : "es"}`;
+  }
   if (typeof val === "boolean") return val ? "Sí" : "No";
   if (typeof val === "number") return String(val);
   return String(val);
@@ -188,6 +195,13 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                         </div>
                       )}
                     </>
+                  ) : col.type === "image_urls_multi" ? (
+                    <ProductImagesUrlsField
+                      key={`images-${editing?.id ?? "new"}`}
+                      name="images"
+                      defaultUrls={editing ? normalizeProductImageUrls(editing) : []}
+                      disabled={!col.editable}
+                    />
                   ) : isCheckbox ? (
                     <input
                       type="checkbox"
