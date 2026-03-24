@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { ResolvedProductColumn } from "@/lib/config/product-column-types";
 import type { Product } from "@/lib/types/product";
@@ -21,6 +21,9 @@ interface CatalogoSectionProps {
   onSwitchToCategories?: () => void;
 }
 
+/** Caracteres visibles en la tabla para descripción (el resto va en tooltip). */
+const DESCRIPTION_LIST_MAX_CHARS = 100;
+
 function formatValue(val: unknown, key?: string): string {
   if (val == null) return "—";
   if (key === "images" && Array.isArray(val)) {
@@ -31,6 +34,25 @@ function formatValue(val: unknown, key?: string): string {
   if (typeof val === "boolean") return val ? "Sí" : "No";
   if (typeof val === "number") return String(val);
   return String(val);
+}
+
+function renderCatalogListCell(p: Product, col: ResolvedProductColumn): ReactNode {
+  if (col.key === "description") {
+    const raw = p[col.key];
+    if (raw == null || String(raw).trim() === "") return "—";
+    const full = String(raw).trim();
+    if (full.length <= DESCRIPTION_LIST_MAX_CHARS) {
+      return <span className="block max-w-md">{full}</span>;
+    }
+    const short =
+      full.slice(0, DESCRIPTION_LIST_MAX_CHARS).trimEnd() + "…";
+    return (
+      <span className="block max-w-md leading-snug" title={full}>
+        {short}
+      </span>
+    );
+  }
+  return formatValue(p[col.key], col.key);
 }
 
 const PRODUCT_TYPE_OPTIONS = [
@@ -334,8 +356,8 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
               products.map((p) => (
                 <tr key={p.id} className="border-b border-zinc-100 hover:bg-zinc-50">
                   {listCols.map((c) => (
-                    <td key={c.key} className="px-3 py-2">
-                      {formatValue(p[c.key], c.key)}
+                    <td key={c.key} className="max-w-[min(20rem,35vw)] px-3 py-2 align-top">
+                      {renderCatalogListCell(p, c)}
                     </td>
                   ))}
                   <td className="px-3 py-2">
