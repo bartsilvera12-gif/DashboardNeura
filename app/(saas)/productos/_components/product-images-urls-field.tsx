@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ProductImagesUrlsFieldProps {
-  name: string;
   defaultUrls: string[];
   disabled?: boolean;
 }
 
 /**
- * Lista de URLs de imágenes; cada input envía el mismo `name` para FormData.getAll().
- * Usa `key` en el padre al cambiar de producto para reiniciar estado.
+ * URLs en estado local; se envía un único `images_json` (array JSON) para evitar problemas
+ * con FormData + Server Actions al repetir el mismo `name`.
  */
 export function ProductImagesUrlsField({
-  name,
   defaultUrls,
   disabled,
 }: ProductImagesUrlsFieldProps) {
   const initial = defaultUrls.length > 0 ? defaultUrls : [""];
   const [urls, setUrls] = useState<string[]>(initial);
+
+  const serialized = useMemo(
+    () => JSON.stringify(urls.map((s) => s.trim()).filter(Boolean)),
+    [urls]
+  );
 
   const add = () => setUrls((prev) => [...prev, ""]);
   const remove = (i: number) =>
@@ -32,11 +35,11 @@ export function ProductImagesUrlsField({
 
   return (
     <div className="space-y-2">
+      <input type="hidden" name="images_json" value={serialized} readOnly />
       {urls.map((u, i) => (
         <div key={i} className="flex gap-2">
           <input
             type="text"
-            name={name}
             value={u}
             onChange={(e) => change(i, e.target.value)}
             placeholder="https://…"

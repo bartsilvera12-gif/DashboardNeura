@@ -18,6 +18,7 @@ export async function getProductsForCompany(companyId: string): Promise<Product[
   const { data } = await dbFrom(supabase, "products")
     .select("*")
     .eq("company_id", companyId)
+    .is("deleted_at", null)
     .order("name");
   return data ?? [];
 }
@@ -65,4 +66,24 @@ export async function updateProduct(id: string, input: Record<string, unknown>):
     throw error;
   }
   return data;
+}
+
+/**
+ * Baja lógica: no borra la fila (pedidos / FKs siguen válidos).
+ */
+export async function softDeleteProduct(
+  productId: string,
+  companyId: string
+): Promise<void> {
+  const supabase = await getSupabaseClient();
+  const now = new Date().toISOString();
+  const { error } = await dbFrom(supabase, "products")
+    .update({
+      deleted_at: now,
+      is_active: false,
+      updated_at: now,
+    })
+    .eq("id", productId)
+    .eq("company_id", companyId);
+  if (error) throw error;
 }

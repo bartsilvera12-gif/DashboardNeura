@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import type { ResolvedProductColumn } from "@/lib/config/product-column-types";
 import type { Product } from "@/lib/types/product";
 import type { CompanyCategory } from "@/lib/config/company-categories-service";
-import { createProductAction, updateProductAction } from "../actions";
+import {
+  createProductAction,
+  updateProductAction,
+  deleteProductAction,
+} from "../actions";
 import { CategorySelect } from "./category-select";
 import { ProductImagesUrlsField } from "./product-images-urls-field";
 import { normalizeProductImageUrls } from "@/lib/utils/product-images";
@@ -68,6 +72,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [productType, setProductType] = useState<string>("ecommerce");
   const [trackStock, setTrackStock] = useState(true);
@@ -101,22 +106,57 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
     setError(null);
     setLoading(true);
     const form = e.currentTarget;
-    const fd = new FormData(form);
-    const result = editing
-      ? await updateProductAction(editing.id, fd)
-      : await createProductAction(companyId, fd);
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error ?? "Error");
+    try {
+      const fd = new FormData(form);
+      const result = editing
+        ? await updateProductAction(editing.id, fd)
+        : await createProductAction(companyId, fd);
+      if (!result.ok) {
+        setError(result.error ?? "Error");
+        return;
+      }
+      setShowForm(false);
+      setEditing(null);
+      form.reset();
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al guardar. Intenta de nuevo."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (productId: string, productName: string | null) => {
+    const label = productName?.trim() || "este producto";
+    if (!window.confirm(`¿Eliminar ${label}? No aparecerá en el catálogo ni en la API pública.`)) {
       return;
     }
-    setShowForm(false);
-    setEditing(null);
-    form.reset();
-    router.refresh();
+    setError(null);
+    setDeletingId(productId);
+    try {
+      const result = await deleteProductAction(productId, companyId);
+      if (!result.ok) {
+        setError(result.error ?? "No se pudo eliminar");
+        return;
+      }
+      if (editing?.id === productId) {
+        setShowForm(false);
+        setEditing(null);
+      }
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Error al eliminar. Intenta de nuevo."
+      );
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const openEdit = (p: Product) => {
+    setError(null);
     setEditing(p);
     setShowForm(true);
   };
@@ -133,12 +173,18 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
         <h2 className="text-lg font-medium text-zinc-900">Catálogo</h2>
         <button
           type="button"
-          onClick={() => { setEditing(null); setShowForm(true); }}
+          onClick={() => { setEditing(null); setShowForm(true); setError(null); }}
           className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
         >
           Nuevo producto
         </button>
       </div>
+
+      {error && (
+        <p className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      )}
 
       {showForm && (
         <form
@@ -151,8 +197,6 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
               Cerrar
             </button>
           </div>
-          {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-
           {stockFormCols.length > 0 && (
             <div className="mb-4">
               <label className="text-xs font-medium text-zinc-600">Tipo de producto</label>
@@ -220,7 +264,6 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                   ) : col.type === "image_urls_multi" ? (
                     <ProductImagesUrlsField
                       key={`images-${editing?.id ?? "new"}`}
-                      name="images"
                       defaultUrls={editing ? normalizeProductImageUrls(editing) : []}
                       disabled={!col.editable}
                     />
@@ -361,13 +404,23 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                     </td>
                   ))}
                   <td className="px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(p)}
-                      className="text-zinc-600 hover:text-zinc-900"
-                    >
-                      Editar
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(p)}
+                        className="text-zinc-600 hover:text-zinc-900"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p.id, p.name)}
+                        disabled={deletingId === p.id}
+                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                      >
+                        {deletingId === p.id ? "Eliminando…" : "Eliminar"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

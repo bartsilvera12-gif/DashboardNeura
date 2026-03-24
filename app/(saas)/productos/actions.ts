@@ -1,7 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createProduct, updateProduct } from "@/lib/config/products-service";
+import {
+  createProduct,
+  updateProduct,
+  softDeleteProduct,
+} from "@/lib/config/products-service";
 import {
   recordStockMovement,
   recordStockInicial,
@@ -132,6 +136,35 @@ export async function updateProductAction(
   } catch (err) {
     const userMsg = translateSupabaseError(err);
     if (process.env.NODE_ENV === "development") console.error("[updateProductAction]:", err);
+    return { ok: false, error: userMsg };
+  }
+}
+
+export async function deleteProductAction(
+  productId: string,
+  companyId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session.user) {
+    return { ok: false, error: "Debes iniciar sesión" };
+  }
+  const canAccess =
+    session.profile?.is_super_admin === true ||
+    session.companies.some((c) => c.id === companyId);
+  if (!canAccess) {
+    return { ok: false, error: "No tienes permiso para esta empresa" };
+  }
+  try {
+    await softDeleteProduct(productId, companyId);
+    revalidatePath("/productos");
+    revalidatePath("/dashboard");
+    revalidatePath("/pedidos");
+    return { ok: true };
+  } catch (err) {
+    const userMsg = translateSupabaseError(err);
+    if (process.env.NODE_ENV === "development") {
+      console.error("[deleteProductAction]:", err);
+    }
     return { ok: false, error: userMsg };
   }
 }
