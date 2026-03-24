@@ -92,7 +92,10 @@ async function getCompaniesForUser(
       .order("name");
 
     return companies ?? [];
-  } catch {
+  } catch (e) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[getCompaniesForUser]", e);
+    }
     return [];
   }
 }

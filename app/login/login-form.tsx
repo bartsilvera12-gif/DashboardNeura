@@ -4,10 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
-export function LoginForm() {
+export function LoginForm({
+  initialAuthError = null,
+}: {
+  initialAuthError?: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialAuthError ?? null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 

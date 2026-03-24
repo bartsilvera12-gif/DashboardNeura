@@ -4,16 +4,9 @@
  */
 
 import { createBrowserClient } from "@supabase/ssr";
+import { getPublicSupabaseEnv } from "@/lib/env/supabase";
 
 export function createBrowserSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Faltan variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY"
-    );
-  }
-
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  const { url, anonKey } = getPublicSupabaseEnv();
+  return createBrowserClient(url, anonKey);
 }

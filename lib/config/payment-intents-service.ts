@@ -77,9 +77,17 @@ export async function createPaymentIntent(
     return { ok: false, error: error.message };
   }
 
+  const appBase = getApiBaseUrl();
+  if (!appBase) {
+    return {
+      ok: false,
+      error:
+        "Falta NEXT_PUBLIC_APP_URL (URL pública de esta app) para generar el enlace de consulta de pago.",
+    };
+  }
+
   // Payment link: cuando se integre PagoPar, será la URL del checkout.
-  // Por ahora: URL para consultar estado (frontend redirige al usuario)
-  const paymentLink = `${getApiBaseUrl()}/api/public/orders/${orderId}/payment-status?ref=${reference}`;
+  const paymentLink = `${appBase}/api/public/orders/${orderId}/payment-status?ref=${reference}`;
 
   return {
     ok: true,

@@ -4,7 +4,17 @@ export const dynamic = "force-dynamic";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const sp = await searchParams;
+  const oauthAuthError =
+    sp.error === "auth"
+      ? "No se pudo completar el inicio de sesión (enlace OAuth o código inválido). Vuelve a intentarlo."
+      : null;
+
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -21,7 +31,7 @@ export default async function LoginPage() {
         <p className="mt-3 text-sm text-zinc-600">
           Inicia sesión para acceder al panel
         </p>
-        <LoginForm />
+        <LoginForm initialAuthError={oauthAuthError} />
       </div>
     </main>
   );

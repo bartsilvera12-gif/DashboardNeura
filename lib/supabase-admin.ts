@@ -6,22 +6,15 @@
  * Requiere SUPABASE_SERVICE_ROLE_KEY (solo servidor; no exponer al cliente).
  */
 import { createClient } from "@supabase/supabase-js";
+import { getServiceRoleEnv } from "@/lib/env/supabase";
 
 let adminClient: ReturnType<typeof createClient> | null = null;
 
 export function getSupabaseAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceKey) {
-    throw new Error(
-      "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY. " +
-        "Configúralas en .env.local / variables del host (claves API de tu instancia Supabase)."
-    );
-  }
+  const { url, serviceRoleKey } = getServiceRoleEnv();
 
   if (!adminClient) {
-    adminClient = createClient(url, serviceKey, {
+    adminClient = createClient(url, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
