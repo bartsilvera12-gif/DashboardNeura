@@ -33,16 +33,17 @@ Si prefieres ejecutar el SQL manualmente en el dashboard de Supabase:
 
 ## Variables de entorno
 
-Añade a `.env.local`:
+Añade a `.env.local` (usa tu instancia self-hosted, p. ej. `https://api.neura.com.py`):
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://api.neura.com.py
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+NEXT_PUBLIC_BUSINESS_SCHEMA=tradexpar
 ```
 
 **SUPABASE_SERVICE_ROLE_KEY** es necesaria para el onboarding de clientes (crear usuarios admin).
-Obtenerla en: Supabase Dashboard > Settings > API > service_role (secret).
+Obtenerla en el panel de tu Supabase (API / service_role). No exponer en el cliente.
 
 ## Crear el primer Super Admin
 

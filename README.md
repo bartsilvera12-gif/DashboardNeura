@@ -9,8 +9,8 @@ de e-commerce.
 - React
 - TypeScript
 - TailwindCSS
-- Supabase (PostgreSQL + Auth)
-- Deploy: Vercel + GitHub
+- Supabase (PostgreSQL + Auth), instancia self-hosted (`api.neura.com.py`)
+- Deploy: Hostinger + GitHub (también compatible con Vercel)
 
 ## Módulos iniciales
 
@@ -52,9 +52,9 @@ npm run dev
 - Implementar control de permisos por empresa y por módulo.
 - Conectar integraciones de e-commerce (shop sync, stock sync, pedidos).
 
-## Deploy en Vercel con GitHub
+## Deploy (Hostinger u otro Node)
 
-1. Crear repositorio en GitHub y subir el proyecto.
-2. En Vercel, importar el repo.
-3. Configurar variables de entorno de Supabase en Vercel.
-4. Desplegar.
+1. Subir el repo a GitHub y conectar el despliegue automático si aplica.
+2. Definir en el panel las mismas variables que en `.env.production.example` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_BUSINESS_SCHEMA`).
+3. Build: `npm run build` y arranque: `npm run start` (o el comando que use Hostinger).
+4. En el servidor Supabase self-hosted, configura **Auth** (URLs de redirección) para el dominio público de la app.

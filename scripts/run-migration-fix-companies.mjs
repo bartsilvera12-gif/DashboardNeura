@@ -59,7 +59,7 @@ ERROR: Falta SUPABASE_DB_URL en .env.local
 1. Ve a Supabase Dashboard > Project Settings > Database
 2. Copia la "Connection string" (URI) - modo Session o Transaction
 3. Añade a .env.local:
-   SUPABASE_DB_URL=postgresql://postgres.xxx:TU_PASSWORD@aws-0-xx.pooler.supabase.com:6543/postgres
+   SUPABASE_DB_URL=postgresql://postgres:TU_PASSWORD@tu-host:5432/postgres
 
 4. Ejecuta: node scripts/run-migration-fix-companies.mjs
 `);

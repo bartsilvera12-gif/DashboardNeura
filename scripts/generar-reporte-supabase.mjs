@@ -2,11 +2,8 @@
  * Script para generar el reporte completo de la base de datos Supabase.
  * Lee el esquema real desde information_schema y genera docs/BASE_DATOS_COMPLETA.md
  *
- * REQUISITO: Añade a tu .env.local la variable:
- *   SUPABASE_DB_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
- *
- * La obtienes en: Supabase Dashboard > Project Settings > Database > Connection string (URI)
- * Usa el modo "Session" o "Transaction".
+ * REQUISITO: SUPABASE_DB_URL en .env.local (PostgreSQL directo a tu instancia self-hosted).
+ * Ejemplo: postgresql://postgres:PASSWORD@host:5432/postgres
  */
 
 import pg from "pg";
@@ -42,7 +39,7 @@ ERROR: Falta SUPABASE_DB_URL en el entorno.
 1. Ve a Supabase Dashboard > Project Settings > Database
 2. Copia la "Connection string" (URI) en modo Session
 3. Añade a .env.local:
-   SUPABASE_DB_URL=postgresql://postgres.xxx:TU_PASSWORD@aws-0-xx.pooler.supabase.com:6543/postgres
+   SUPABASE_DB_URL=postgresql://postgres:TU_PASSWORD@tu-host:5432/postgres
 
 4. Ejecuta:
    node --env-file=.env.local scripts/generar-reporte-supabase.mjs

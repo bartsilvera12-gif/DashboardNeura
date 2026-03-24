@@ -61,7 +61,7 @@ Si falla en cualquier paso, se hace rollback de la empresa creada.
 Añadir a `.env.local`:
 
 ```
-SUPABASE_SERVICE_ROLE_KEY=eyJ...  # Supabase Dashboard > Settings > API > service_role
+SUPABASE_SERVICE_ROLE_KEY=...  # Panel API de tu Supabase self-hosted (service_role, solo servidor)
 ```
 
 ---

@@ -3,7 +3,7 @@
  * SOLO usar en Server Actions / API Routes para operaciones administrativas.
  * Permite crear usuarios, bypass RLS, etc.
  *
- * Requiere SUPABASE_SERVICE_ROLE_KEY en .env.local
+ * Requiere SUPABASE_SERVICE_ROLE_KEY (solo servidor; no exponer al cliente).
  */
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,7 +16,7 @@ export function getSupabaseAdminClient() {
   if (!url || !serviceKey) {
     throw new Error(
       "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY. " +
-        "Añade SUPABASE_SERVICE_ROLE_KEY a .env.local (Supabase Dashboard > Settings > API)"
+        "Configúralas en .env.local / variables del host (claves API de tu instancia Supabase)."
     );
   }
 
