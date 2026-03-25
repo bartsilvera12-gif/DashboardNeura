@@ -42,7 +42,7 @@ export function PedidosTabs({
   >("por_confirmar");
 
   return (
-    <div className="min-w-0">
+    <div>
       <div className="mb-6 flex flex-wrap gap-2 border-b border-zinc-200">
         <button
           type="button"

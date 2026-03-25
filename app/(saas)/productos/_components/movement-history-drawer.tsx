@@ -72,7 +72,7 @@ export function MovementHistoryDrawer({
         aria-hidden="true"
       />
       <div
-        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-2xl min-w-0 flex-col bg-white shadow-xl"
+        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-2xl flex-col bg-white shadow-xl"
         role="dialog"
         aria-labelledby="history-title"
       >
@@ -90,7 +90,7 @@ export function MovementHistoryDrawer({
           </button>
         </div>
 
-        <div className="min-w-0 flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {product && (
             <div className="mb-4">
               <p className="text-xs font-medium text-zinc-500">Producto</p>
@@ -116,7 +116,7 @@ export function MovementHistoryDrawer({
           ) : (
             <div className={sr.shell}>
               <div className={sr.scroll}>
-                <table className={`${sr.table} min-w-max`}>
+                <table className={`${sr.table} min-w-[900px]`}>
                   <thead>
                     <tr className={sr.theadTr}>
                       <th className={sr.th}>Fecha</th>
@@ -124,13 +124,9 @@ export function MovementHistoryDrawer({
                       <th className={sr.thRight}>Cant.</th>
                       <th className={sr.thRight}>Anterior</th>
                       <th className={sr.thRight}>Nuevo</th>
-                      <th className={`${sr.th} min-w-0 max-w-[10rem]`}>Motivo</th>
-                      <th className={`${sr.th} min-w-0 max-w-[10rem]`}>
-                        Observación
-                      </th>
-                      <th className={`${sr.th} min-w-0 max-w-[9rem]`}>
-                        Usuario
-                      </th>
+                      <th className={sr.th}>Motivo</th>
+                      <th className={sr.th}>Observación</th>
+                      <th className={sr.th}>Usuario</th>
                       <th className={sr.th}>Origen</th>
                     </tr>
                   </thead>
@@ -149,18 +145,14 @@ export function MovementHistoryDrawer({
                         </td>
                         <td className={sr.tdRight}>{m.previous_stock}</td>
                         <td className={sr.tdRightStrong}>{m.new_stock}</td>
-                        <td className={`${sr.td} min-w-0 max-w-[10rem] break-words`}>
-                          {m.reason ?? "—"}
-                        </td>
+                        <td className={sr.td}>{m.reason ?? "—"}</td>
                         <td
-                          className={`${sr.td} min-w-0 max-w-[10rem] break-words text-xs`}
+                          className={`${sr.td} max-w-[120px] truncate`}
                           title={m.notes ?? undefined}
                         >
                           {m.notes ?? "—"}
                         </td>
-                        <td className={`${sr.td} min-w-0 max-w-[9rem] break-words`}>
-                          {creatorLabel(m)}
-                        </td>
+                        <td className={sr.td}>{creatorLabel(m)}</td>
                         <td className={sr.td}>{originLabel(m.origin)}</td>
                       </tr>
                     ))}

@@ -1,6 +1,6 @@
 import { getApiBaseUrl } from "@/lib/constants/api";
 import { CopyButton } from "./_components/copy-button";
-import { sr, srSticky, SaasMethodBadge } from "../_components/saas-report-table";
+import { sr, SaasMethodBadge } from "../_components/saas-report-table";
 
 const ENDPOINTS = [
   { method: "GET", path: "/api/public/products", description: "Productos activos" },
@@ -21,7 +21,7 @@ export function EndpointsSection() {
   const baseUrl = getApiBaseUrl();
 
   return (
-    <section className="min-w-0 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-zinc-900">
         Endpoints públicos
       </h2>
@@ -38,32 +38,26 @@ export function EndpointsSection() {
 
       <div className={`mt-4 ${sr.shell}`}>
         <div className={sr.scroll}>
-            <table className={`${sr.table} min-w-max`}>
-              <thead>
-                <tr className={sr.theadTr}>
-                  <th className={sr.th}>Método</th>
-                  <th className={`${sr.th} min-w-0 max-w-[min(28rem,70vw)]`}>
-                    URL
-                  </th>
-                  <th className={sr.th}>Descripción</th>
-                  <th className={`${sr.thRight} w-24 ${srSticky.thActions}`}>
-                    Copiar
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+          <table className={sr.table}>
+            <thead>
+              <tr className={sr.theadTr}>
+                <th className={sr.th}>Método</th>
+                <th className={sr.th}>URL</th>
+                <th className={sr.th}>Descripción</th>
+                <th className={`${sr.thRight} w-24`}>Copiar</th>
+              </tr>
+            </thead>
+            <tbody>
               {ENDPOINTS.map((ep) => {
                 const fullUrl = baseUrl + ep.path.replace(":id", ":orderId");
                 return (
-                  <tr key={ep.path} className={`group ${sr.tr}`}>
+                  <tr key={ep.path} className={sr.tr}>
                     <td className={sr.td}>
                       <SaasMethodBadge method={ep.method} />
                     </td>
-                    <td className={`${sr.tdMono} min-w-0 max-w-[min(28rem,70vw)] break-all`}>
-                      {fullUrl}
-                    </td>
+                    <td className={sr.tdMono}>{fullUrl}</td>
                     <td className={sr.td}>{ep.description}</td>
-                    <td className={`${sr.actions} ${srSticky.tdActions}`}>
+                    <td className={sr.actions}>
                       <CopyButton
                         text={fullUrl}
                         className="rounded border border-zinc-700 px-2 py-1 text-xs font-medium text-cyan-400 hover:bg-zinc-800"

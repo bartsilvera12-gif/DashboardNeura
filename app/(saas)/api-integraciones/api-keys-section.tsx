@@ -10,7 +10,7 @@ import {
   deleteApiKeyAction,
 } from "./actions";
 import { CopyButton } from "./_components/copy-button";
-import { sr, srSticky, SaasStatusBadge } from "../_components/saas-report-table";
+import { sr, SaasStatusBadge } from "../_components/saas-report-table";
 
 interface ApiKeysSectionProps {
   apiKeys: ApiKeyRow[];
@@ -61,7 +61,7 @@ export function ApiKeysSection({ apiKeys, companies, baseUrl }: ApiKeysSectionPr
   }
 
   return (
-    <section className="min-w-0 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900">API Keys</h2>
@@ -86,7 +86,7 @@ export function ApiKeysSection({ apiKeys, companies, baseUrl }: ApiKeysSectionPr
       ) : (
         <div className={`mt-4 ${sr.shell}`}>
           <div className={sr.scroll}>
-            <table className={`${sr.table} min-w-max`}>
+            <table className={sr.table}>
               <thead>
                 <tr className={sr.theadTr}>
                   <th className={sr.th}>Nombre</th>
@@ -95,14 +95,12 @@ export function ApiKeysSection({ apiKeys, companies, baseUrl }: ApiKeysSectionPr
                   <th className={sr.th}>Estado</th>
                   <th className={sr.th}>Último uso</th>
                   <th className={sr.th}>Creada</th>
-                  <th className={`${sr.thRight} ${srSticky.thActions}`}>
-                    Acciones
-                  </th>
+                  <th className={sr.thRight}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {apiKeys.map((key) => (
-                  <tr key={key.id} className={`group ${sr.tr}`}>
+                  <tr key={key.id} className={sr.tr}>
                     <td className={sr.tdLead}>{key.name ?? "—"}</td>
                     <td className={sr.td}>{key.company_name ?? "—"}</td>
                     <td className={`${sr.tdMono} max-w-[10rem] truncate`}>
@@ -115,7 +113,7 @@ export function ApiKeysSection({ apiKeys, companies, baseUrl }: ApiKeysSectionPr
                     </td>
                     <td className={sr.td}>{formatDate(key.last_used_at)}</td>
                     <td className={sr.td}>{formatDate(key.created_at)}</td>
-                    <td className={`${sr.actions} ${srSticky.tdActions}`}>
+                    <td className={sr.actions}>
                       <div className={sr.actionsInner}>
                         <form
                           action={toggleApiKeyAction.bind(null, key.id, !key.is_active)}

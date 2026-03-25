@@ -17,22 +17,20 @@ export function SaasSidebar({ modules, session, branding }: SaasSidebarProps) {
 
   return (
     <aside
-      className="flex w-[10.5rem] shrink-0 flex-col border-r border-zinc-800 bg-zinc-950 px-2 py-3 sm:w-48 sm:px-2.5 sm:py-4"
+      className="w-64 border-r border-zinc-200 bg-white p-6"
       style={{ "--brand-color": primaryColor } as React.CSSProperties}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex items-center gap-3">
         {branding?.logo_url ? (
           <img
             src={branding.logo_url}
             alt="Logo"
-            className="h-7 w-auto shrink-0 object-contain sm:h-8"
+            className="h-8 w-auto object-contain"
           />
         ) : null}
-        <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold leading-tight text-zinc-50 sm:text-lg">
-            {displayName}
-          </h2>
-          <p className="text-[10px] text-zinc-500 sm:text-xs">
+        <div>
+          <h2 className="text-lg font-semibold text-zinc-900">{displayName}</h2>
+          <p className="text-xs text-zinc-500">
             {session.profile?.is_super_admin ? "Super Admin" : "Panel"}
           </p>
         </div>
@@ -40,7 +38,7 @@ export function SaasSidebar({ modules, session, branding }: SaasSidebarProps) {
 
       {(session.companies.length > 1 || session.profile?.is_super_admin) &&
       session.companies.length > 0 ? (
-        <div className="mt-3 sm:mt-4">
+        <div className="mt-4">
           <CompanySelector
             companies={session.companies}
             activeCompanyId={
@@ -48,17 +46,16 @@ export function SaasSidebar({ modules, session, branding }: SaasSidebarProps) {
               (session.companies.length === 1 ? session.companies[0].id : null)
             }
             isSuperAdmin={session.profile?.is_super_admin ?? false}
-            variant="dark"
           />
         </div>
       ) : null}
 
-      <nav className="mt-4 space-y-0.5 sm:mt-5 sm:space-y-1">
+      <nav className="mt-6 space-y-2">
         {modules.map((module) => (
           <Link
             key={module.id}
             href={module.path}
-            className="block rounded-md px-2 py-1.5 text-[13px] font-medium leading-snug text-zinc-300 hover:bg-zinc-800/90 hover:text-white sm:px-2.5 sm:py-2 sm:text-sm"
+            className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
           >
             {module.name}
           </Link>
@@ -66,19 +63,19 @@ export function SaasSidebar({ modules, session, branding }: SaasSidebarProps) {
         {session.profile?.is_super_admin ? (
           <Link
             href="/api-integraciones"
-            className="block rounded-md px-2 py-1.5 text-[13px] font-medium leading-snug text-zinc-300 hover:bg-zinc-800/90 hover:text-white sm:px-2.5 sm:py-2 sm:text-sm"
+            className="block rounded-md px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
           >
             API e Integraciones
           </Link>
         ) : null}
       </nav>
 
-      <div className="mt-auto border-t border-zinc-800 pt-4 sm:pt-5">
+      <div className="mt-auto border-t border-zinc-200 pt-6">
         <p className="truncate text-xs text-zinc-500">{session.user?.email}</p>
         <form action={signOutAction} className="mt-2">
           <button
             type="submit"
-            className="text-sm font-medium text-zinc-400 hover:text-white"
+            className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
           >
             Cerrar sesión
           </button>

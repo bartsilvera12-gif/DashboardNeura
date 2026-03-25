@@ -20,7 +20,7 @@ export default async function PedidosPage() {
 
   if (!companyId) {
     return (
-      <main className="min-w-0">
+      <main>
         <h1 className="text-2xl font-semibold text-zinc-900">
           Gestión de pedidos
         </h1>
@@ -48,7 +48,7 @@ export default async function PedidosPage() {
   ]);
 
   return (
-    <main className="min-w-0">
+    <main>
       <h1 className="text-2xl font-semibold text-zinc-900">
         Gestión de pedidos
       </h1>

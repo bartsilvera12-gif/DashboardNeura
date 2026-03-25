@@ -55,20 +55,15 @@ export function CategorySelect({
   };
 
   return (
-    <div ref={containerRef} className="relative min-w-0">
+    <div ref={containerRef} className="relative">
       <input type="hidden" name={name} value={value} readOnly />
       <button
         type="button"
         onClick={() => !disabled && setIsOpen((o) => !o)}
         disabled={disabled}
-        className="w-full min-w-0 rounded border border-zinc-300 bg-white px-2 py-1.5 text-left text-sm text-zinc-700 disabled:bg-zinc-100 disabled:text-zinc-500"
+        className="w-full rounded border border-zinc-300 bg-white px-2 py-1.5 text-left text-sm text-zinc-700 disabled:bg-zinc-100 disabled:text-zinc-500"
       >
-        <span
-          className={`block truncate ${value ? "" : "text-zinc-400"}`}
-          title={displayText}
-        >
-          {displayText}
-        </span>
+        <span className={value ? "" : "text-zinc-400"}>{displayText}</span>
       </button>
       {isOpen && (
         <div className="absolute z-10 mt-1 w-full rounded border border-zinc-200 bg-white py-1 shadow-lg">
