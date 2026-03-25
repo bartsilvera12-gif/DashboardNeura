@@ -28,7 +28,7 @@ export default async function ApiIntegracionesPage() {
   const baseUrl = getApiBaseUrl();
 
   return (
-    <main className="space-y-10">
+    <main className="min-w-0 space-y-10">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-900">
           API e Integraciones

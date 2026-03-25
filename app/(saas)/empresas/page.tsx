@@ -6,7 +6,7 @@ export default async function EmpresasPage() {
   const companies = await getCompanies();
 
   return (
-    <main>
+    <main className="min-w-0">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900">Empresas</h1>

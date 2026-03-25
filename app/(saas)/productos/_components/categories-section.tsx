@@ -39,7 +39,7 @@ export function CategoriesSection({ companyId, categories, fromProducto = false,
   };
 
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="min-w-0 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-medium text-zinc-900">Categorías</h2>
       </div>
@@ -74,7 +74,7 @@ export function CategoriesSection({ companyId, categories, fromProducto = false,
 
       <div className={sr.shell}>
         <div className={sr.scroll}>
-          <table className={`${sr.table} min-w-[300px]`}>
+          <table className={`${sr.table} min-w-full`}>
             <thead>
               <tr className={sr.theadTr}>
                 <th className={sr.th}>Nombre</th>

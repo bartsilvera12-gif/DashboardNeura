@@ -16,7 +16,7 @@ export default async function ProductosPage() {
 
   if (!companyId) {
     return (
-      <main>
+      <main className="min-w-0">
         <h1 className="text-2xl font-semibold text-zinc-900">Productos</h1>
         <p className="mt-2 text-zinc-600">
           Selecciona una empresa para gestionar productos.
@@ -42,14 +42,16 @@ export default async function ProductosPage() {
   }
 
   return (
-    <main>
-      <h1 className="text-2xl font-semibold text-zinc-900">Productos</h1>
-      <p className="mt-2 text-zinc-600">
+    <main className="min-w-0">
+      <h1 className="text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
+        Productos
+      </h1>
+      <p className="mt-1 max-w-3xl text-sm leading-snug text-zinc-600 sm:mt-1.5 sm:text-base">
         Área principal de administración operativa. Centraliza la gestión de
         productos e inventario en un solo lugar.
       </p>
 
-      <div className="mt-8">
+      <div className="mt-4 sm:mt-5">
         <Suspense fallback={<div className=" rounded-lg border border-zinc-200 bg-zinc-50 p-8 text-center text-zinc-500">Cargando…</div>}>
           <ProductosTabs
             companyId={companyId}

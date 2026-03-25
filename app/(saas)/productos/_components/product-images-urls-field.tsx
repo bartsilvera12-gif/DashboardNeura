@@ -34,7 +34,7 @@ export function ProductImagesUrlsField({
     });
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <input type="hidden" name="images_json" value={serialized} readOnly />
       {urls.map((u, i) => (
         <div key={i} className="flex gap-2">

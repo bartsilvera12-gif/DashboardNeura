@@ -56,12 +56,12 @@ export function ProductosTabs({
   };
 
   return (
-    <div>
-      <div className="mb-6 flex gap-2 border-b border-zinc-200">
+    <div className="min-w-0">
+      <div className="mb-3 flex flex-wrap gap-1 border-b border-zinc-200 sm:mb-4 sm:gap-2">
         <button
           type="button"
           onClick={() => setTab("catalogo")}
-          className={`border-b-2 px-4 py-2 text-sm font-medium ${
+          className={`border-b-2 px-3 py-1.5 text-sm font-medium sm:px-4 sm:py-2 ${
             tab === "catalogo"
               ? "border-zinc-900 text-zinc-900"
               : "border-transparent text-zinc-600 hover:text-zinc-900"
@@ -72,7 +72,7 @@ export function ProductosTabs({
         <button
           type="button"
           onClick={() => setTab("stock")}
-          className={`border-b-2 px-4 py-2 text-sm font-medium ${
+          className={`border-b-2 px-3 py-1.5 text-sm font-medium sm:px-4 sm:py-2 ${
             tab === "stock"
               ? "border-zinc-900 text-zinc-900"
               : "border-transparent text-zinc-600 hover:text-zinc-900"
@@ -83,7 +83,7 @@ export function ProductosTabs({
         <button
           type="button"
           onClick={() => setTab("categorias")}
-          className={`border-b-2 px-4 py-2 text-sm font-medium ${
+          className={`border-b-2 px-3 py-1.5 text-sm font-medium sm:px-4 sm:py-2 ${
             tab === "categorias"
               ? "border-zinc-900 text-zinc-900"
               : "border-transparent text-zinc-600 hover:text-zinc-900"

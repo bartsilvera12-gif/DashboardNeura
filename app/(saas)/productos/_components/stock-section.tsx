@@ -11,7 +11,7 @@ import {
   STOCK_STATUS_LABELS,
   STOCK_STATUS_STYLES_DARK,
 } from "@/lib/utils/stock-status";
-import { sr } from "../../_components/saas-report-table";
+import { sr, srSticky } from "../../_components/saas-report-table";
 import { STOCK_MOVEMENT_TYPE_LABELS } from "@/lib/constants/stock-movements";
 import { RegisterMovementDrawer } from "./register-movement-drawer";
 import { MovementHistoryDrawer } from "./movement-history-drawer";
@@ -74,7 +74,7 @@ export function StockSection({
   };
 
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="min-w-0 rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="mb-4 text-lg font-medium text-zinc-900">Stock</h2>
       <p className="mb-6 text-sm text-zinc-600">
         Inventario integrado en Productos. Registra movimientos para mantener la
@@ -124,17 +124,23 @@ export function StockSection({
 
       <div className={sr.shell}>
         <div className={sr.scroll}>
-          <table className={`${sr.table} min-w-[800px]`}>
+          <table className={`${sr.table} min-w-max`}>
             <thead>
               <tr className={sr.theadTr}>
-                <th className={sr.th}>Producto</th>
-                <th className={sr.th}>SKU</th>
+                <th className={`${sr.th} min-w-0 max-w-[14rem] sm:max-w-[18rem]`}>
+                  Producto
+                </th>
+                <th className={`${sr.th} max-w-[10rem]`}>SKU</th>
                 <th className={sr.thRight}>Stock actual</th>
                 <th className={sr.thRight}>Mínimo</th>
                 <th className={sr.thRight}>Punto pedido</th>
                 <th className={sr.th}>Estado</th>
-                <th className={sr.th}>Último movimiento</th>
-                <th className={sr.thRight}>Acciones</th>
+                <th className={`${sr.th} min-w-0 max-w-[14rem]`}>
+                  Último movimiento
+                </th>
+                <th className={`${sr.thRight} ${srSticky.thActions}`}>
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -155,9 +161,18 @@ export function StockSection({
                 const lastMov = lastMovementByProduct[p.id];
 
                 return (
-                  <tr key={p.id} className={sr.tr}>
-                    <td className={sr.tdLead}>{p.name ?? "—"}</td>
-                    <td className={sr.tdMono}>{p.sku ?? "—"}</td>
+                  <tr key={p.id} className={`group ${sr.tr}`}>
+                    <td className={`${sr.tdLead} min-w-0 max-w-[14rem] sm:max-w-[18rem]`}>
+                      <span
+                        className="block truncate"
+                        title={p.name ?? undefined}
+                      >
+                        {p.name ?? "—"}
+                      </span>
+                    </td>
+                    <td className={`${sr.tdMono} max-w-[10rem] break-all`}>
+                      {p.sku ?? "—"}
+                    </td>
                     <td className={sr.tdRight}>
                       {usesStock ? (p.stock ?? 0) : "—"}
                     </td>
@@ -174,9 +189,9 @@ export function StockSection({
                         {STOCK_STATUS_LABELS[status]}
                       </span>
                     </td>
-                    <td className={sr.td}>
+                    <td className={`${sr.td} min-w-0 max-w-[14rem]`}>
                       {lastMov ? (
-                        <span className="text-xs text-zinc-500">
+                        <span className="block text-xs leading-snug text-zinc-500">
                           {STOCK_MOVEMENT_TYPE_LABELS[lastMov.movement_type as keyof typeof STOCK_MOVEMENT_TYPE_LABELS] ??
                             lastMov.movement_type}{" "}
                           · {formatDate(lastMov.created_at)}
@@ -185,7 +200,7 @@ export function StockSection({
                         <span className="text-zinc-600">—</span>
                       )}
                     </td>
-                    <td className={sr.actions}>
+                    <td className={`${sr.actions} ${srSticky.tdActions}`}>
                       <div className={`${sr.actionsInner} gap-x-3`}>
                         <button
                           type="button"

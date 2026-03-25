@@ -8,7 +8,7 @@ import {
   SOURCE_CHANNEL_LABELS,
 } from "@/lib/constants/orders";
 import type { OrderStatus } from "@/lib/constants/orders";
-import { sr } from "../../_components/saas-report-table";
+import { sr, srSticky } from "../../_components/saas-report-table";
 import { OrderDetailDrawer } from "./order-detail-drawer";
 
 interface ConfirmadasSectionProps {
@@ -43,7 +43,7 @@ export function ConfirmadasSection({
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div className="flex justify-end">
         <button
           type="button"
@@ -61,16 +61,18 @@ export function ConfirmadasSection({
       ) : (
         <div className={sr.shell}>
           <div className={sr.scroll}>
-            <table className={`${sr.table} min-w-[700px]`}>
+            <table className={`${sr.table} min-w-max`}>
               <thead>
                 <tr className={sr.theadTr}>
                   <th className={sr.th}>Nº pedido</th>
-                  <th className={sr.th}>Cliente</th>
+                  <th className={`${sr.th} min-w-0 max-w-[12rem]`}>Cliente</th>
                   <th className={sr.thRight}>Total</th>
                   <th className={sr.th}>Estado</th>
                   <th className={sr.th}>Canal</th>
                   <th className={sr.th}>Fecha</th>
-                  <th className={sr.thRight}>Acciones</th>
+                  <th className={`${sr.thRight} ${srSticky.thActions}`}>
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -79,11 +81,18 @@ export function ConfirmadasSection({
                   const pill =
                     ORDER_STATUS_STYLES_DARK[st] ??
                     "bg-zinc-500/15 text-zinc-400 ring-1 ring-zinc-500/25";
+                  const clientLabel =
+                        o.customer_name || o.customer_email || "—";
                   return (
-                    <tr key={o.id} className={sr.tr}>
+                    <tr key={o.id} className={`group ${sr.tr}`}>
                       <td className={sr.tdLead}>{o.order_number}</td>
-                      <td className={sr.td}>
-                        {o.customer_name || o.customer_email || "—"}
+                      <td className={`${sr.td} min-w-0 max-w-[12rem]`}>
+                        <span
+                          className="block truncate"
+                          title={clientLabel}
+                        >
+                          {clientLabel}
+                        </span>
                       </td>
                       <td className={sr.tdRightStrong}>
                         {formatMoney(Number(o.total) || 0)}
@@ -101,7 +110,7 @@ export function ConfirmadasSection({
                           "—"}
                       </td>
                       <td className={sr.td}>{formatDate(o.created_at)}</td>
-                      <td className={sr.actions}>
+                      <td className={`${sr.actions} ${srSticky.tdActions}`}>
                         <div className={sr.actionsInner}>
                           <button
                             type="button"

@@ -18,7 +18,7 @@ function formatDate(iso: string) {
 
 export function LogsSection({ logs }: LogsSectionProps) {
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <section className="min-w-0 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-zinc-900">Logs de uso</h2>
       <p className="mt-1 text-sm text-zinc-600">
         Registro reciente de llamadas a la API pública.
@@ -31,7 +31,7 @@ export function LogsSection({ logs }: LogsSectionProps) {
       ) : (
         <div className={`mt-4 ${sr.shell}`}>
           <div className={sr.scroll}>
-            <table className={sr.table}>
+            <table className={`${sr.table} min-w-max`}>
               <thead>
                 <tr className={sr.theadTr}>
                   <th className={sr.th}>Empresa</th>
@@ -45,8 +45,8 @@ export function LogsSection({ logs }: LogsSectionProps) {
                 {logs.map((log) => (
                   <tr key={log.id} className={sr.tr}>
                     <td className={sr.tdLead}>{log.company_name ?? "—"}</td>
-                    <td className={sr.td}>
-                      <span className="font-mono text-xs text-zinc-500">
+                    <td className={`${sr.td} min-w-0 max-w-[min(24rem,55vw)]`}>
+                      <span className="break-all font-mono text-xs text-zinc-500">
                         {log.method} {log.endpoint}
                       </span>
                     </td>

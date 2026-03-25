@@ -43,13 +43,15 @@ export default async function SaasLayout({
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      <div className="mx-auto flex max-w-7xl">
+      <div className="flex min-h-screen w-full min-w-0">
         <SaasSidebar
           modules={modules}
           session={session}
           branding={branding}
         />
-        <section className="flex-1 p-6">{children}</section>
+        <section className="min-w-0 flex-1 px-2 py-3 sm:px-3 sm:py-4">
+          {children}
+        </section>
       </div>
     </div>
   );

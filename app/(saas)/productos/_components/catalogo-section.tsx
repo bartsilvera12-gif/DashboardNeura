@@ -13,7 +13,7 @@ import {
 import { CategorySelect } from "./category-select";
 import { ProductImagesUrlsField } from "./product-images-urls-field";
 import { normalizeProductImageUrls } from "@/lib/utils/product-images";
-import { sr, SaasStatusBadge } from "../../_components/saas-report-table";
+import { sr, srSticky, SaasStatusBadge } from "../../_components/saas-report-table";
 
 interface CatalogoSectionProps {
   companyId: string;
@@ -26,8 +26,6 @@ interface CatalogoSectionProps {
   onSwitchToCategories?: () => void;
 }
 
-/** Caracteres visibles en la tabla para descripción (el resto va en tooltip). */
-const DESCRIPTION_LIST_MAX_CHARS = 100;
 
 function formatValue(val: unknown, key?: string): string {
   if (val == null) return "—";
@@ -41,25 +39,56 @@ function formatValue(val: unknown, key?: string): string {
   return String(val);
 }
 
+function listColClass(key: string): string {
+  switch (key) {
+    case "name":
+      return "min-w-0 max-w-[9rem] sm:max-w-[11rem] lg:max-w-[13rem]";
+    case "description":
+      return "min-w-0 max-w-[6.5rem] sm:max-w-[8rem] lg:max-w-[10rem]";
+    case "price_sale":
+    case "price_cost":
+      return "min-w-0 max-w-[7rem] whitespace-nowrap text-right tabular-nums";
+    case "stock":
+    case "min_stock":
+    case "max_stock":
+    case "reorder_point":
+      return "min-w-0 max-w-[5.5rem] whitespace-nowrap text-right tabular-nums";
+    case "sku":
+    case "barcode":
+      return "min-w-0 max-w-[9rem] break-all";
+    case "images":
+      return "min-w-0 max-w-[6.5rem] whitespace-nowrap";
+    default:
+      return "min-w-0 max-w-[9rem] break-words";
+  }
+}
+
 function renderCatalogListCell(p: Product, col: ResolvedProductColumn): ReactNode {
+  if (col.key === "name") {
+    const raw = p[col.key];
+    if (raw == null || String(raw).trim() === "") {
+      return <span className="text-zinc-600">—</span>;
+    }
+    const full = String(raw).trim();
+    return (
+      <span className="block truncate font-semibold text-zinc-100" title={full}>
+        {full}
+      </span>
+    );
+  }
   if (col.key === "description") {
     const raw = p[col.key];
     if (raw == null || String(raw).trim() === "") {
       return <span className="text-zinc-600">—</span>;
     }
     const full = String(raw).trim();
-    if (full.length <= DESCRIPTION_LIST_MAX_CHARS) {
-      return <span className="block max-w-md text-zinc-300">{full}</span>;
-    }
-    const short =
-      full.slice(0, DESCRIPTION_LIST_MAX_CHARS).trimEnd() + "…";
     return (
-      <span
-        className="block max-w-md leading-snug text-zinc-300"
+      <p
+        className="line-clamp-2 min-h-0 min-w-0 max-w-full overflow-hidden break-words text-left text-[11px] leading-snug text-zinc-300"
         title={full}
       >
-        {short}
-      </span>
+        {full}
+      </p>
     );
   }
   if (col.key === "status") {
@@ -83,7 +112,18 @@ function renderCatalogListCell(p: Product, col: ResolvedProductColumn): ReactNod
     }
     return <SaasStatusBadge variant="inactive">No</SaasStatusBadge>;
   }
-  return formatValue(p[col.key], col.key);
+  const v = formatValue(p[col.key], col.key);
+  if (typeof v === "string" && v !== "—") {
+    if (col.key === "sku" || col.key === "barcode") {
+      return <span className="block min-w-0 break-all">{v}</span>;
+    }
+    return (
+      <span className="block min-w-0 truncate" title={v}>
+        {v}
+      </span>
+    );
+  }
+  return v;
 }
 
 const PRODUCT_TYPE_OPTIONS = [
@@ -195,13 +235,15 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
   };
 
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-medium text-zinc-900">Catálogo</h2>
+    <section className="relative z-0 min-w-0 max-w-full rounded-xl border border-zinc-200/90 bg-white p-3 shadow-[0_4px_24px_-6px_rgba(0,0,0,0.08),0_2px_8px_-2px_rgba(0,0,0,0.04)] ring-1 ring-zinc-100 sm:p-4">
+      <div className="mb-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <h2 className="min-w-0 text-base font-semibold tracking-tight text-zinc-900 sm:text-lg">
+          Catálogo
+        </h2>
         <button
           type="button"
           onClick={() => { setEditing(null); setShowForm(true); setError(null); }}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          className="shrink-0 self-start rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-md shadow-zinc-900/25 transition hover:bg-zinc-800 hover:shadow-lg sm:self-auto"
         >
           Nuevo producto
         </button>
@@ -216,22 +258,28 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4"
+          className="mb-6 min-w-0 max-w-full rounded-xl border border-zinc-200/90 bg-gradient-to-b from-zinc-50 to-white p-3 shadow-md shadow-zinc-900/[0.05] ring-1 ring-zinc-200/60 sm:p-5"
         >
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-medium">{editing ? "Editar producto" : "Nuevo producto"}</h3>
-            <button type="button" onClick={closeForm} className="text-sm text-zinc-500 hover:text-zinc-700">
+          <div className="mb-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <h3 className="min-w-0 pr-2 text-base font-medium text-zinc-900">
+              {editing ? "Editar producto" : "Nuevo producto"}
+            </h3>
+            <button
+              type="button"
+              onClick={closeForm}
+              className="shrink-0 self-end text-sm text-zinc-500 hover:text-zinc-700 sm:self-auto"
+            >
               Cerrar
             </button>
           </div>
           {stockFormCols.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-4 min-w-0">
               <label className="text-xs font-medium text-zinc-600">Tipo de producto</label>
               <select
                 name="product_type"
                 value={productType}
                 onChange={(e) => setProductType(e.target.value)}
-                className="mt-1 block w-full max-w-xs rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                className="mt-1 block w-full min-w-0 max-w-full rounded border border-zinc-300 px-2 py-1.5 text-sm sm:max-w-md"
               >
                 {PRODUCT_TYPE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -243,20 +291,20 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
           )}
 
           <h4 className="mb-2 text-sm font-medium text-zinc-700">Catálogo</h4>
-          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+          <div className="mb-6 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2">
             {formCols.map((col) => {
               const val = editing ? (editing[col.key] ?? "") : "";
               const isCheckbox = col.type === "boolean";
               const isCategorySelect = col.type === "category_select";
               return (
-                <div key={col.key} className="flex flex-col gap-1">
+                <div key={col.key} className="flex min-w-0 flex-col gap-1">
                   <label className="text-xs font-medium text-zinc-600">
                     {col.label} {col.required ? "*" : ""}
                   </label>
                   {isCategorySelect ? (
                     <>
                       {categories.length === 0 ? (
-                        <div className="rounded border border-amber-200 bg-amber-50 px-2 py-2 text-sm text-amber-800">
+                        <div className="break-words rounded border border-amber-200 bg-amber-50 px-2 py-2 text-sm text-amber-800">
                           No hay categorías.{" "}
                           <button
                             type="button"
@@ -310,7 +358,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                       required={col.required}
                       disabled={!col.editable}
                       rows={2}
-                      className="rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                      className="w-full min-w-0 max-w-full rounded border border-zinc-300 px-2 py-1.5 text-sm"
                     />
                   ) : (
                     <input
@@ -320,7 +368,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                       required={col.required}
                       disabled={!col.editable}
                       step={col.type === "number" ? "any" : undefined}
-                      className="rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                      className="w-full min-w-0 max-w-full rounded border border-zinc-300 px-2 py-1.5 text-sm"
                     />
                   )}
                 </div>
@@ -331,7 +379,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
           {showStockSection && (
             <>
               <h4 className="mb-2 text-sm font-medium text-zinc-700">Stock</h4>
-              <div className="mb-6 grid gap-3 sm:grid-cols-2">
+              <div className="mb-6 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2">
                 {stockFormCols
                   .filter((col) => !(STOCK_DEPENDENT_KEYS.includes(col.key) && !showStockDependentFields))
                   .map((col) => {
@@ -339,7 +387,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                   const numDefault =
                     editing ? (editing[col.key] ?? (col.key === "stock" ? 0 : "")) : (col.key === "stock" ? 0 : "");
                   return (
-                    <div key={col.key} className="flex flex-col gap-1">
+                    <div key={col.key} className="flex min-w-0 flex-col gap-1">
                       <label className="text-xs font-medium text-zinc-600">
                         {col.label} {col.required ? "*" : ""}
                       </label>
@@ -378,7 +426,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                           disabled={!col.editable}
                           step="any"
                           min={0}
-                          className="rounded border border-zinc-300 px-2 py-1.5 text-sm"
+                          className="w-full min-w-0 max-w-full rounded border border-zinc-300 px-2 py-1.5 text-sm"
                         />
                       )}
                     </div>
@@ -388,7 +436,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
             </>
           )}
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex min-w-0 flex-wrap gap-2">
             <button
               type="submit"
               disabled={loading}
@@ -405,7 +453,7 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
 
       <div className={sr.shell}>
         <div className={sr.scroll}>
-          <table className={`${sr.table} min-w-[600px]`}>
+          <table className={`${sr.table} min-w-max`}>
             <thead>
               <tr className={sr.theadTr}>
                 {listCols.map((c) => (
@@ -413,7 +461,9 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                     {c.label}
                   </th>
                 ))}
-                <th className={sr.thRight}>Acciones</th>
+                <th className={`${sr.thRight} ${srSticky.thActions}`}>
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -428,19 +478,33 @@ export function CatalogoSection({ companyId, products, columns, stockColumns = [
                 </tr>
               ) : (
                 products.map((p) => (
-                  <tr key={p.id} className={sr.tr}>
-                    {listCols.map((c) => (
+                  <tr key={p.id} className={`group ${sr.tr}`}>
+                    {listCols.map((c) => {
+                      const isNumericCol = [
+                        "price_sale",
+                        "price_cost",
+                        "stock",
+                        "min_stock",
+                        "max_stock",
+                        "reorder_point",
+                      ].includes(c.key);
+                      const cellPad =
+                        c.key === "name"
+                          ? sr.tdLead
+                          : isNumericCol
+                            ? sr.tdRight
+                            : sr.td;
+                      return (
                       <td
                         key={c.key}
-                        className={`max-w-[min(20rem,35vw)] align-top ${
-                          c.key === "name" ? sr.tdLead : sr.td
-                        }`}
+                        className={`${listColClass(c.key)} align-top ${cellPad}`}
                       >
                         {renderCatalogListCell(p, c)}
                       </td>
-                    ))}
-                    <td className={sr.actions}>
-                      <div className={sr.actionsInner}>
+                      );
+                    })}
+                    <td className={`${sr.actions} ${srSticky.tdActions}`}>
+                      <div className={sr.actionsInnerStack}>
                         <button
                           type="button"
                           onClick={() => openEdit(p)}
