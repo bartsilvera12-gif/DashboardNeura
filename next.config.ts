@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /** Carpeta de salida del build (equivalente a `dist` en Vite). `next start` la usa automáticamente. */
+  distDir: "dist",
   async headers() {
     return [
       {

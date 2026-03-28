@@ -16,25 +16,6 @@ export default async function SaasLayout({
     redirect("/login");
   }
 
-  if (!session.profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-6">
-        <div className="max-w-md rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">
-          <h2 className="text-lg font-semibold text-amber-900">
-            Perfil no encontrado
-          </h2>
-          <p className="mt-2 text-sm text-amber-800">
-            Tu usuario no tiene un perfil en el sistema. Contacta al
-            administrador para que ejecute la migración de perfiles.
-          </p>
-          <p className="mt-4 text-xs text-amber-700">
-            Usuario: {session.user.email}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const companyId =
     session.activeCompanyId ??
     (session.companies.length === 1 ? session.companies[0].id : null);

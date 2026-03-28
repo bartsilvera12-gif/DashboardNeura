@@ -34,8 +34,15 @@ export function LoginForm({
 
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      setError("Error al iniciar sesión");
+    } catch (e) {
+      const msg =
+        e instanceof Error &&
+        (e.name === "AbortError" || /aborted|timeout/i.test(e.message))
+          ? "Sin respuesta del servidor (revisa conexión y NEXT_PUBLIC_SUPABASE_URL)."
+          : e instanceof Error
+            ? e.message
+            : "Error al iniciar sesión";
+      setError(msg);
     } finally {
       setLoading(false);
     }
